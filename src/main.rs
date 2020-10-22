@@ -3,6 +3,8 @@ use std::os::unix::fs::MetadataExt;
 use std::{env, fs, io};
 use termion::color;
 use users::{get_current_uid, get_user_by_uid};
+extern crate pretty_bytes;
+use pretty_bytes::converter::convert;
 
 fn main() -> io::Result<()> {
   let args: Vec<String> = env::args().collect();
@@ -58,25 +60,7 @@ fn main() -> io::Result<()> {
       print!(" ")
     }
     print!("{}", color::Fg(color::Green));
-    if fs::metadata(&e)?.size() > 1000 {
-      let mut first = fs::metadata(&e)?.size() / 1000;
-      let mut second = fs::metadata(&e)?.size() % 1000;
-      if second + 1000 > 500 {
-        first += 1;
-        second = 0;
-      }
-
-      print!(" {}.{}", first, second);
-      print!("{}", color::Fg(color::Yellow));
-      print!("k");
-    } else {
-      let res = format!(" {:?}", fs::metadata(&e)?.size());
-      let length = 5 - res.len();
-      for _ in 0..length {
-        print!(" ");
-      }
-      print!("{}", res);
-    }
+    print!(" {}", convert(fs::metadata(&e)?.size() as f64));
 
     if let Ok(time) = e.metadata()?.created() {
       print!("{}", color::Fg(color::Blue));
