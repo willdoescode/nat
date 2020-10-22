@@ -1,5 +1,5 @@
 [package]
-name = "lsrust"
+name = "nat"
 version = "0.1.0"
 authors = ["Will Lane <williamlane923@gmail.com>"]
 edition = "2018"
