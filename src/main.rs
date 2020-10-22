@@ -40,7 +40,7 @@ fn main() -> io::Result<()> {
       mode_count += 2;
     }
     if user_has_read_write_access == 384 {
-      print!("{}", color::Fg(color::Blue));
+      print!("{}", color::Fg(color::LightBlue));
       print!("rw");
       print!("{}", color::Fg(color::White));
       print!("-");
@@ -74,13 +74,13 @@ fn main() -> io::Result<()> {
     print!(" {}", convert(fs::metadata(&e)?.size() as f64));
 
     if let Ok(time) = e.metadata()?.created() {
-      print!("{}", color::Fg(color::Blue));
+      print!("{}", color::Fg(color::LightBlue));
       let datetime: DateTime<Utc> = time.into();
       print!(" {} ", datetime.format("%d-%m-%Y"));
       print!("{}", datetime.format("%T"))
     }
     if let Ok(time) = e.metadata()?.modified() {
-      print!("{}", color::Fg(color::Red));
+      print!("{}", color::Fg(color::LightRed));
       let datetime: DateTime<Utc> = time.into();
       print!(" {} ", datetime.format("%d-%m-%Y"));
       print!("{}", datetime.format("%T"))
