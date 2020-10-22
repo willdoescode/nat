@@ -26,7 +26,13 @@ alias ls='nat'
 ### Running
 
 ```bash
-nat <directory>
+nat <dir>
+```
+
+#### Searching for file
+
+```bash
+nat <dir> | grep "<filename>"
 ```
 
 ### To edit the code
