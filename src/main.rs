@@ -7,12 +7,16 @@ use std::{fs, io};
 use structopt::StructOpt;
 use termion::color;
 use users::{get_current_uid, get_user_by_uid};
+mod single;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "nat", about = "the ls replacement you never knew you needed")]
 struct Cli {
   #[structopt(parse(from_os_str), default_value = ".", help = "Give me a directory")]
   path: std::path::PathBuf,
+
+  #[structopt(default_value = "", short = "f", long = "file", help = "File to search for")]
+  file: String,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -22,11 +26,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let entries = fs::read_dir(directory)?
     .map(|res| res.map(|e| e.path()))
     .collect::<Result<Vec<_>, io::Error>>()?;
+
   let mut size_count = 0;
   for s in &entries {
     if convert(fs::metadata(&s)?.size() as f64).len() > size_count {
       size_count = convert(fs::metadata(&s)?.size() as f64).len();
     };
+  }
+
+  if &args.file != "" {
+    for e in &entries {
+      if e.file_name().unwrap().to_str().unwrap() == &args.file {
+        let _ = single::single(e, size_count);
+        std::process::exit(1)
+      }
+    }
+    print!("File could not be found");
+    std::process::exit(1)
   }
 
   print!("{}", Style::new().underline().paint("permissions"));

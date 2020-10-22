@@ -32,7 +32,7 @@ nat <dir>
 #### Searching for file
 
 ```bash
-nat <dir> | grep "<filename>"
+nat <dir (leave empty if in wanted dir)> -f <file>
 ```
 
 ### To edit the code
