@@ -4,6 +4,7 @@ use std::{env, fs, io};
 use termion::color;
 use users::{get_current_uid, get_user_by_uid};
 extern crate pretty_bytes;
+use ansi_term::Style;
 use pretty_bytes::converter::convert;
 
 fn main() -> io::Result<()> {
@@ -24,7 +25,39 @@ fn main() -> io::Result<()> {
     };
   }
 
-  for e in entries {
+  print!("{}", Style::new().underline().paint("permissions"));
+  for _ in 0..2 {
+    print!("{}", Style::new().underline().paint(" "))
+  }
+  print!(" {}", Style::new().underline().paint("size"));
+  for _ in 0..(size_count - 4) {
+    print!("{}", Style::new().underline().paint(" "))
+  }
+
+  print!(" {}", Style::new().underline().paint("modified"));
+
+  for _ in 0..11 {
+    print!("{}", Style::new().underline().paint(" "))
+  }
+
+  print!(" {}", Style::new().underline().paint("user"));
+
+  for _ in 0..(get_user_by_uid(get_current_uid())
+    .unwrap()
+    .name()
+    .to_str()
+    .unwrap()
+    .len()
+    - 4)
+  {
+    print!("{}", Style::new().underline().paint(" "))
+  }
+
+  print!(" {}", Style::new().underline().paint("name"));
+
+  print!("\n");
+
+  for e in &entries {
     let meta = fs::metadata(&e)?;
     let mode = meta.mode();
     let user_has_write_access = mode & 0o200;
@@ -40,15 +73,19 @@ fn main() -> io::Result<()> {
       mode_count += 2;
     }
     if user_has_read_write_access == 384 {
-      print!("{}", color::Fg(color::LightBlue));
-      print!("rw");
+      print!("{}", color::Fg(color::LightYellow));
+      print!("r");
+      print!("{}", color::Fg(color::LightRed));
+      print!("w");
       print!("{}", color::Fg(color::White));
       print!("-");
       mode_count += 3;
     }
     if group_has_read_access == 32 {
-      print!("{}", color::Fg(color::Red));
-      print!("xa");
+      print!("{}", color::Fg(color::Green));
+      print!("x");
+      print!("{}", color::Fg(color::LightYellow));
+      print!("a");
       print!("{}", color::Fg(color::White));
       print!("-");
       mode_count += 3;
@@ -71,14 +108,8 @@ fn main() -> io::Result<()> {
       print!(" ")
     }
     print!("{}", color::Fg(color::Green));
-    print!(" {}", convert(fs::metadata(&e)?.size() as f64));
+    print!(" {}", Style::new().bold().paint(convert(fs::metadata(&e)?.size() as f64)));
 
-    if let Ok(time) = e.metadata()?.created() {
-      print!("{}", color::Fg(color::LightBlue));
-      let datetime: DateTime<Utc> = time.into();
-      print!(" {} ", datetime.format("%d-%m-%Y"));
-      print!("{}", datetime.format("%T"))
-    }
     if let Ok(time) = e.metadata()?.modified() {
       print!("{}", color::Fg(color::LightRed));
       let datetime: DateTime<Utc> = time.into();
@@ -89,11 +120,11 @@ fn main() -> io::Result<()> {
     print!("{}", color::Fg(color::Yellow));
     print!(
       " {} ",
-      get_user_by_uid(get_current_uid())
-        .unwrap()
-        .name()
-        .to_str()
-        .unwrap()
+      Style::new().bold().paint(get_user_by_uid(get_current_uid())
+      .unwrap()
+      .name()
+      .to_str()
+      .unwrap())
     );
 
     print!("{}", color::Fg(color::White));
@@ -102,7 +133,7 @@ fn main() -> io::Result<()> {
       println!("{}/", &e.file_name().unwrap().to_str().unwrap());
     } else {
       print!("{}", color::Fg(color::LightGreen));
-      println!("{}", &e.file_name().unwrap().to_str().unwrap());
+      println!("{}", Style::new().bold().paint(e.file_name().unwrap().to_str().unwrap()));
     }
   }
   Ok(())
