@@ -1,23 +1,26 @@
-use chrono::{DateTime, Utc};
-use std::os::unix::fs::MetadataExt;
-use std::{env, fs, io};
-use termion::color;
-use users::{get_current_uid, get_user_by_uid};
 extern crate pretty_bytes;
 use ansi_term::Style;
+use chrono::{DateTime, Utc};
 use pretty_bytes::converter::convert;
+use std::os::unix::fs::MetadataExt;
+use std::{fs, io};
+use structopt::StructOpt;
+use termion::color;
+use users::{get_current_uid, get_user_by_uid};
 
-fn main() -> io::Result<()> {
-  let args: Vec<String> = env::args().collect();
-  let mut directory = ".";
-  if args.len() > 1 {
-    directory = &args[1]
-  }
+#[derive(StructOpt, Debug)]
+struct Cli {
+  #[structopt(default_value = ".")]
+  path: std::path::PathBuf,
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+  let args = Cli::from_args();
+  let directory = &args.path;
 
   let entries = fs::read_dir(directory)?
     .map(|res| res.map(|e| e.path()))
     .collect::<Result<Vec<_>, io::Error>>()?;
-
   let mut size_count = 0;
   for s in &entries {
     if convert(fs::metadata(&s)?.size() as f64).len() > size_count {
@@ -108,7 +111,12 @@ fn main() -> io::Result<()> {
       print!(" ")
     }
     print!("{}", color::Fg(color::Green));
-    print!(" {}", Style::new().bold().paint(convert(fs::metadata(&e)?.size() as f64)));
+    print!(
+      " {}",
+      Style::new()
+        .bold()
+        .paint(convert(fs::metadata(&e)?.size() as f64))
+    );
 
     if let Ok(time) = e.metadata()?.modified() {
       print!("{}", color::Fg(color::LightRed));
@@ -120,11 +128,13 @@ fn main() -> io::Result<()> {
     print!("{}", color::Fg(color::Yellow));
     print!(
       " {} ",
-      Style::new().bold().paint(get_user_by_uid(get_current_uid())
-      .unwrap()
-      .name()
-      .to_str()
-      .unwrap())
+      Style::new().bold().paint(
+        get_user_by_uid(get_current_uid())
+          .unwrap()
+          .name()
+          .to_str()
+          .unwrap()
+      )
     );
 
     print!("{}", color::Fg(color::White));
@@ -133,7 +143,12 @@ fn main() -> io::Result<()> {
       println!("{}/", &e.file_name().unwrap().to_str().unwrap());
     } else {
       print!("{}", color::Fg(color::LightGreen));
-      println!("{}", Style::new().bold().paint(e.file_name().unwrap().to_str().unwrap()));
+      println!(
+        "{}",
+        Style::new()
+          .bold()
+          .paint(e.file_name().unwrap().to_str().unwrap())
+      );
     }
   }
   Ok(())

@@ -1,6 +1,6 @@
 [package]
 name = "nat"
-version = "0.1.0"
+version = "1.0.3"
 authors = ["Will Lane <williamlane923@gmail.com>"]
 edition = "2018"
 
@@ -12,3 +12,4 @@ chrono = "*"
 users = "*"
 pretty-bytes = "*"
 ansi_term = "*"
+structopt = "*"
