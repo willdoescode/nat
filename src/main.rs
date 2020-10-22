@@ -17,6 +17,13 @@ fn main() -> io::Result<()> {
     .map(|res| res.map(|e| e.path()))
     .collect::<Result<Vec<_>, io::Error>>()?;
 
+  let mut size_count = 0;
+  for s in &entries {
+    if convert(fs::metadata(&s)?.size() as f64).len() > size_count {
+      size_count = convert(fs::metadata(&s)?.size() as f64).len();
+    };
+  }
+
   for e in entries {
     let meta = fs::metadata(&e)?;
     let mode = meta.mode();
@@ -57,6 +64,10 @@ fn main() -> io::Result<()> {
     print!("-@");
     mode_count += 2;
     for _ in 0..(13 - mode_count) {
+      print!(" ")
+    }
+
+    for _ in 0..(size_count - convert(fs::metadata(&e)?.size() as f64).len()) {
       print!(" ")
     }
     print!("{}", color::Fg(color::Green));
