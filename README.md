@@ -16,6 +16,13 @@ then add the nat file to your path
 /usr/local/bin/
 ```
 
+#### Using nat with ls
+
+in zshrc or bashrc
+```bash
+alias ls='nat'
+```
+
 ### Running
 
 ```bash
