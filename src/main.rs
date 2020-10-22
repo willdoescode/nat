@@ -10,7 +10,6 @@ fn main() -> io::Result<()> {
   if args.len() > 1 {
     directory = &args[1]
   }
-  println!("{}", directory);
 
   let entries = fs::read_dir(directory)?
     .map(|res| res.map(|e| e.path()))
