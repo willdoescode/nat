@@ -92,7 +92,14 @@ fn main() -> io::Result<()> {
     }
 
     print!("{}", color::Fg(color::Yellow));
-    print!(" {:?} ", get_user_by_uid(get_current_uid()).unwrap().name());
+    print!(
+      " {} ",
+      get_user_by_uid(get_current_uid())
+        .unwrap()
+        .name()
+        .to_str()
+        .unwrap()
+    );
 
     print!("{}", color::Fg(color::White));
     if e.metadata()?.is_dir() {
