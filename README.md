@@ -17,7 +17,7 @@ then add the nat file to your path
 ### Running
 
 ```bash
-nat <file>
+nat <directory>
 ```
 
 ### To edit the code
