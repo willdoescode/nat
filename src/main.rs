@@ -22,32 +22,41 @@ fn main() -> io::Result<()> {
     let user_has_read_write_access = mode & 0o600;
     let group_has_read_access = mode & 0o040;
     let others_have_exec_access = mode & 0o001;
+    let mut mode_count = 0;
     if user_has_write_access == 128 {
       print!("{}", color::Fg(color::Red));
       print!("w");
       print!("{}", color::Fg(color::White));
       print!("-");
+      mode_count += 2;
     }
     if user_has_read_write_access == 384 {
       print!("{}", color::Fg(color::Blue));
       print!("rw");
       print!("{}", color::Fg(color::White));
       print!("-");
+      mode_count += 3;
     }
     if group_has_read_access == 32 {
       print!("{}", color::Fg(color::Red));
       print!("xa");
       print!("{}", color::Fg(color::White));
       print!("-");
+      mode_count += 3;
     }
     if others_have_exec_access == 1 {
       print!("{}", color::Fg(color::Yellow));
       print!("xw");
       print!("{}", color::Fg(color::White));
       print!("-");
+      mode_count += 3;
     }
     print!("{}", color::Fg(color::White));
     print!("-@");
+    mode_count += 2;
+    for _ in 0..(13 - mode_count) {
+      print!(" ")
+    }
     print!("{}", color::Fg(color::Green));
     if fs::metadata(&e)?.size() > 1000 {
       let mut first = fs::metadata(&e)?.size() / 1000;
@@ -61,7 +70,12 @@ fn main() -> io::Result<()> {
       print!("{}", color::Fg(color::Yellow));
       print!("k");
     } else {
-      print!(" {:?}", fs::metadata(&e)?.size());
+      let res = format!(" {:?}", fs::metadata(&e)?.size());
+      let length = 5 - res.len();
+      for _ in 0..length {
+        print!(" ");
+      }
+      print!("{}", res);
     }
 
     if let Ok(time) = e.metadata()?.created() {
@@ -82,9 +96,11 @@ fn main() -> io::Result<()> {
 
     print!("{}", color::Fg(color::White));
     if e.metadata()?.is_dir() {
-      println!("{}/", &e.display().to_string()[2..]);
+      print!("{}", color::Fg(color::LightBlue));
+      println!("{}/", &e.file_name().unwrap().to_str().unwrap());
     } else {
-      println!("{}", &e.display().to_string()[2..]);
+      print!("{}", color::Fg(color::LightGreen));
+      println!("{}", &e.file_name().unwrap().to_str().unwrap());
     }
   }
   Ok(())
