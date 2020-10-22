@@ -9,8 +9,9 @@ use termion::color;
 use users::{get_current_uid, get_user_by_uid};
 
 #[derive(StructOpt, Debug)]
+#[structopt(name = "nat", about = "the ls replacement you never knew you needed")]
 struct Cli {
-  #[structopt(default_value = ".")]
+  #[structopt(parse(from_os_str), default_value = ".", help = "Give me a directory")]
   path: std::path::PathBuf,
 }
 
