@@ -34,14 +34,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
   }
 
+  let mut found = false;
+
   if &args.file != "" {
     for e in &entries {
-      if e.file_name().unwrap().to_str().unwrap() == &args.file {
+      if e.file_name().unwrap().to_str().unwrap().to_lowercase().contains(&args.file.to_lowercase()) {
         let _ = single::single(e, size_count);
-        std::process::exit(1)
+        found = true;
       }
     }
-    print!("File could not be found");
+    if !found {
+      println!("File could not be found");
+    }
     std::process::exit(1)
   }
 
