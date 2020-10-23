@@ -15,7 +15,12 @@ struct Cli {
   #[structopt(parse(from_os_str), default_value = ".", help = "Give me a directory")]
   path: std::path::PathBuf,
 
-  #[structopt(default_value = "", short = "f", long = "file", help = "File to search for")]
+  #[structopt(
+    default_value = "",
+    short = "f",
+    long = "file",
+    help = "File to search for"
+  )]
   file: String,
 }
 
@@ -36,19 +41,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let mut found = false;
 
-  if &args.file != "" {
-    for e in &entries {
-      if e.file_name().unwrap().to_str().unwrap().to_lowercase().contains(&args.file.to_lowercase()) {
-        let _ = single::single(e, size_count);
-        found = true;
-      }
-    }
-    if !found {
-      println!("File could not be found");
-    }
-    std::process::exit(1)
-  }
-
   print!("{}", Style::new().underline().paint("permissions"));
   for _ in 0..2 {
     print!("{}", Style::new().underline().paint(" "))
@@ -58,9 +50,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     print!("{}", Style::new().underline().paint(" "))
   }
 
-  print!(" {}", Style::new().underline().paint("modified"));
+  print!(" {}", Style::new().underline().paint("last modified"));
 
-  for _ in 0..11 {
+  for _ in 0..6 {
     print!("{}", Style::new().underline().paint(" "))
   }
 
@@ -80,6 +72,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   print!(" {}", Style::new().underline().paint("name"));
 
   print!("\n");
+
+  if &args.file != "" {
+    for e in &entries {
+      if e
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_lowercase()
+        .contains(&args.file.to_lowercase())
+      {
+        let _ = single::single(e, size_count);
+        found = true;
+      }
+    }
+    if !found {
+      print!("{}", color::Fg(color::Red));
+      println!(
+        "{}",
+        Style::new()
+          .bold()
+          .paint(format!("{} could not be found", &args.file))
+      );
+    }
+    std::process::exit(1)
+  }
 
   for e in &entries {
     let meta = fs::metadata(&e)?;

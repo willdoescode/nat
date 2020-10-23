@@ -2,44 +2,12 @@ extern crate pretty_bytes;
 use ansi_term::Style;
 use chrono::{DateTime, Utc};
 use pretty_bytes::converter::convert;
+use std::fs;
 use std::os::unix::fs::MetadataExt;
-use std::{fs};
 use termion::color;
 use users::{get_current_uid, get_user_by_uid};
 
 pub fn single(e: &std::path::PathBuf, size_count: usize) -> Result<(), Box<dyn std::error::Error>> {
-  print!("{}", Style::new().underline().paint("permissions"));
-  for _ in 0..2 {
-    print!("{}", Style::new().underline().paint(" "))
-  }
-  print!(" {}", Style::new().underline().paint("size"));
-  for _ in 0..(size_count - 4) {
-    print!("{}", Style::new().underline().paint(" "))
-  }
-
-  print!(" {}", Style::new().underline().paint("modified"));
-
-  for _ in 0..11 {
-    print!("{}", Style::new().underline().paint(" "))
-  }
-
-  print!(" {}", Style::new().underline().paint("user"));
-
-  for _ in 0..(get_user_by_uid(get_current_uid())
-    .unwrap()
-    .name()
-    .to_str()
-    .unwrap()
-    .len()
-    - 4)
-  {
-    print!("{}", Style::new().underline().paint(" "))
-  }
-
-  print!(" {}", Style::new().underline().paint("name"));
-
-  print!("\n");
-
   let meta = fs::metadata(&e)?;
   let mode = meta.mode();
   let user_has_write_access = mode & 0o200;
