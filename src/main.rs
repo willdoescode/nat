@@ -28,7 +28,7 @@ struct Cli {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
   let args = Cli::from_args();
-  let mut directory = &args.path;
+  let directory = &args.path;
 
   let entries = fs::read_dir(directory)?
     .map(|res| res.map(|e| e.path()))
