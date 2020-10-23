@@ -6,7 +6,7 @@ use std::os::unix::fs::MetadataExt;
 use std::{fs, io};
 use structopt::StructOpt;
 use termion::color;
-use users::{get_current_uid, get_user_by_uid};
+use users::{get_current_uid, get_group_by_gid, get_user_by_uid};
 mod single;
 
 #[derive(StructOpt, Debug)]
@@ -33,10 +33,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .collect::<Result<Vec<_>, io::Error>>()?;
 
   let mut size_count = 0;
+  let mut group_size = 0;
   for s in &entries {
     if convert(fs::metadata(&s)?.size() as f64).len() > size_count {
       size_count = convert(fs::metadata(&s)?.size() as f64).len();
     };
+    if get_user_by_uid(fs::metadata(&s)?.uid())
+      .unwrap()
+      .name()
+      .to_str()
+      .unwrap()
+      .len()
+      > group_size
+    {
+      group_size = get_user_by_uid(fs::metadata(&s)?.uid())
+        .unwrap()
+        .name()
+        .to_str()
+        .unwrap()
+        .len()
+    }
   }
 
   let mut found = false;
@@ -54,6 +70,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   for _ in 0..6 {
     print!("{}", Style::new().underline().paint(" "))
+  }
+
+  print!(" {}", Style::new().underline().paint("group"));
+  for _ in 0..(group_size - 8) {
+    print!("{}", Style::new().underline().paint(" "));
   }
 
   print!(" {}", Style::new().underline().paint("user"));
@@ -165,10 +186,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     print!("{}", color::Fg(color::Yellow));
+
     print!(
       " {} ",
       Style::new().bold().paint(
-        get_user_by_uid(get_current_uid())
+        get_group_by_gid(fs::metadata(e)?.gid())
+          .unwrap()
+          .name()
+          .to_str()
+          .unwrap()
+      )
+    );
+
+    print!("{}", color::Fg(color::LightYellow));
+
+    print!(
+      "{} ",
+      Style::new().bold().paint(
+        get_user_by_uid(fs::metadata(e)?.uid())
           .unwrap()
           .name()
           .to_str()
