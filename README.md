@@ -4,6 +4,19 @@
 
 ![demo](natdemo.png)
 
+## What is nat?
+
+Nat is a complete replacement for the 'ls' command
+
+Nats features include
+
+- Showing file permissions
+- Showing file size
+- Showing the date that the file was modified last
+- Showing the user that the file belongs to 
+- A splash of color to disinguish between files and folders
+
+
 ## Usage
 
 ### Installation
