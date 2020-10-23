@@ -52,7 +52,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   draw_headline("permissions", 2, false);
   draw_headline("size", size_count - 4, true);
   draw_headline("last modified", 6, true);
-  draw_headline("group", group_size - 4, true);
+  draw_headline("group",get_group_by_gid(get_current_gid()).unwrap().name().to_str().unwrap().len() - 5, true);
   draw_headline("user", get_user_name(get_current_uid()).len() - 4, true);
   draw_headline("name", 0, true);
 
