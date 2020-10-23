@@ -6,9 +6,9 @@
 
 ## What is nat?
 
-Nat is a complete replacement for the 'ls' command
+Nat is a complete replacement for the 'ls' command on Mac OS X.
 
-Nats features include
+Nat's features include
 
 - Showing file permissions
 - Showing file size
