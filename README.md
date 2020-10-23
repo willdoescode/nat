@@ -16,7 +16,7 @@ Nats features include
 - Showing the user that the file belongs to 
 - Showing the group that the file belongs to
 - An easy to use file search
-- A splash of color to disinguish between files and folders
+- A splash of color to distinguish between files and folders
 
 ## Highlights
 
