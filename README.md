@@ -14,6 +14,7 @@ Nats features include
 - Showing file size
 - Showing the date that the file was modified last
 - Showing the user that the file belongs to 
+- A easy to use file search
 - A splash of color to disinguish between files and folders
 
 
