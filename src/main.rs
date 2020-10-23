@@ -1,4 +1,5 @@
 extern crate pretty_bytes;
+
 use ansi_term::Style;
 use chrono::{DateTime, Utc};
 use pretty_bytes::converter::convert;
@@ -6,7 +7,8 @@ use std::os::unix::fs::MetadataExt;
 use std::{fs, io};
 use structopt::StructOpt;
 use termion::color;
-use users::{get_current_uid, get_group_by_gid, get_user_by_uid};
+use users::{get_current_uid, get_group_by_gid, get_user_by_uid, uid_t, get_current_gid};
+
 mod single;
 
 #[derive(StructOpt, Debug)]
@@ -38,59 +40,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if convert(fs::metadata(&s)?.size() as f64).len() > size_count {
       size_count = convert(fs::metadata(&s)?.size() as f64).len();
     };
-    if get_user_by_uid(fs::metadata(&s)?.uid())
-      .unwrap()
-      .name()
-      .to_str()
-      .unwrap()
-      .len()
-      > group_size
-    {
-      group_size = get_user_by_uid(fs::metadata(&s)?.uid())
-        .unwrap()
-        .name()
-        .to_str()
-        .unwrap()
-        .len()
+    let metadata_uid = fs::metadata(&s)?.uid();
+    let user_name_len = get_user_name(metadata_uid).len();
+    if user_name_len > group_size {
+      group_size = user_name_len;
     }
   }
 
   let mut found = false;
 
-  print!("{}", Style::new().underline().paint("permissions"));
-  for _ in 0..2 {
-    print!("{}", Style::new().underline().paint(" "))
-  }
-  print!(" {}", Style::new().underline().paint("size"));
-  for _ in 0..(size_count - 4) {
-    print!("{}", Style::new().underline().paint(" "))
-  }
-
-  print!(" {}", Style::new().underline().paint("last modified"));
-
-  for _ in 0..6 {
-    print!("{}", Style::new().underline().paint(" "))
-  }
-
-  print!(" {}", Style::new().underline().paint("group"));
-  for _ in 0..(group_size - 8) {
-    print!("{}", Style::new().underline().paint(" "));
-  }
-
-  print!(" {}", Style::new().underline().paint("user"));
-
-  for _ in 0..(get_user_by_uid(get_current_uid())
-    .unwrap()
-    .name()
-    .to_str()
-    .unwrap()
-    .len()
-    - 4)
-  {
-    print!("{}", Style::new().underline().paint(" "))
-  }
-
-  print!(" {}", Style::new().underline().paint("name"));
+  draw_headline("permissions", 2, false);
+  draw_headline("size", size_count - 4, true);
+  draw_headline("last modified", 6, true);
+  draw_headline("group", group_size - 4, true);
+  draw_headline("user", get_user_name(get_current_uid()).len() - 4, true);
+  draw_headline("name", 0, true);
 
   print!("\n");
 
@@ -226,4 +190,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
   }
   Ok(())
+}
+
+fn draw_headline(input: &str, line_length: usize, print_separator: bool) {
+    if print_separator {
+        print!(" {}", Style::new().underline().paint(input));
+    } else {
+        print!("{}", Style::new().underline().paint(input));
+    }
+    draw_line(line_length);
+}
+
+fn draw_line(to: usize) {
+    for _ in 0..to {
+        print!("{}", Style::new().underline().paint(" "));
+    }
+}
+
+fn get_user_name(uid: uid_t) -> String {
+    get_user_by_uid(uid)
+        .unwrap()
+        .name()
+        .to_str()
+        .unwrap()
+        .to_string()
 }
