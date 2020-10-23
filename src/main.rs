@@ -185,7 +185,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       print!("{}", datetime.format("%T"))
     }
 
-    print!("{}", color::Fg(color::Yellow));
+    print!("{}", color::Fg(color::LightBlue));
 
     print!(
       " {} ",
