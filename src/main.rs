@@ -32,13 +32,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .map(|res| res.map(|e| e.path()))
     .collect::<Result<Vec<_>, io::Error>>()?;
 
-  let mut size_count = 0;
-  let mut group_size = 0;
+  let mut size_count = 4;
+  let mut group_size = 8;
   for s in &entries {
-    if convert(fs::metadata(&s)?.size() as f64).len() > size_count {
-      size_count = convert(fs::metadata(&s)?.size() as f64).len();
+    if convert(fs::symlink_metadata(&s)?.size() as f64).len() > size_count {
+      size_count = convert(fs::symlink_metadata(&s)?.size() as f64).len();
     };
-    if get_user_by_uid(fs::metadata(&s)?.uid())
+    if get_user_by_uid(fs::symlink_metadata(&s)?.uid())
       .unwrap()
       .name()
       .to_str()
@@ -46,7 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       .len()
       > group_size
     {
-      group_size = get_user_by_uid(fs::metadata(&s)?.uid())
+      group_size = get_user_by_uid(fs::symlink_metadata(&s)?.uid())
         .unwrap()
         .name()
         .to_str()
@@ -121,7 +121,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   }
 
   for e in &entries {
-    let meta = fs::metadata(&e)?;
+    let meta = fs::symlink_metadata(&e)?;
     let mode = meta.mode();
     let user_has_write_access = mode & 0o200;
     let user_has_read_write_access = mode & 0o600;
@@ -167,7 +167,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       print!(" ")
     }
 
-    for _ in 0..(size_count - convert(fs::metadata(&e)?.size() as f64).len()) {
+    for _ in 0..(size_count - convert(fs::symlink_metadata(&e)?.size() as f64).len()) {
       print!(" ")
     }
     print!("{}", color::Fg(color::Green));
@@ -175,10 +175,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       " {}",
       Style::new()
         .bold()
-        .paint(convert(fs::metadata(&e)?.size() as f64))
+        .paint(convert(fs::symlink_metadata(&e)?.size() as f64))
     );
 
-    if let Ok(time) = e.metadata()?.modified() {
+    if let Ok(time) = e.symlink_metadata()?.modified() {
       print!("{}", color::Fg(color::LightRed));
       let datetime: DateTime<Utc> = time.into();
       print!(" {} ", datetime.format("%d-%m-%Y"));
@@ -190,7 +190,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     print!(
       " {} ",
       Style::new().bold().paint(
-        get_group_by_gid(fs::metadata(e)?.gid())
+        get_group_by_gid(fs::symlink_metadata(e)?.gid())
           .unwrap()
           .name()
           .to_str()
@@ -203,7 +203,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     print!(
       "{} ",
       Style::new().bold().paint(
-        get_user_by_uid(fs::metadata(e)?.uid())
+        get_user_by_uid(fs::symlink_metadata(e)?.uid())
           .unwrap()
           .name()
           .to_str()
@@ -212,7 +212,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     print!("{}", color::Fg(color::White));
-    if e.metadata()?.is_dir() {
+    if e.symlink_metadata()?.is_dir() {
       print!("{}", color::Fg(color::LightBlue));
       println!("{}/", &e.file_name().unwrap().to_str().unwrap());
     } else {
