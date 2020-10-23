@@ -23,13 +23,11 @@ Nats features include
 
 ### Installation
 
-```
 install the latest release from
 https://github.com/willdoescode/nat/releases/
 
 then add the nat file to your path
 /usr/local/bin/
-```
 
 #### Using nat with ls
 
