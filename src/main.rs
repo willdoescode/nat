@@ -46,15 +46,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if user_name_len > group_size {
       group_size = user_name_len;
     }
+
   }
 
   let mut found = false;
-
+  
   draw_headline("permissions", 2, false);
   draw_headline("size", size_count - 4, true);
   draw_headline("last modified", 6, true);
   draw_headline("group",get_group_by_gid(get_current_gid()).unwrap().name().to_str().unwrap().len() - 5, true);
-  draw_headline("user", get_user_name(get_current_uid()).len() - 4, true);
+  draw_headline("user", get_user_by_uid(get_current_uid()).unwrap().name().to_str().unwrap().len() - 4, true);
   draw_headline("name", 0, true);
 
   print!("\n");
