@@ -4,6 +4,7 @@ use ansi_term::Style;
 use chrono::{DateTime, Utc};
 use pretty_bytes::converter::convert;
 use std::os::unix::fs::MetadataExt;
+use std::os::unix::fs::PermissionsExt;
 use std::{fs, io};
 use structopt::StructOpt;
 use termion::color;
@@ -88,11 +89,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   for e in &entries {
     let meta = fs::symlink_metadata(&e)?;
-    let mode = meta.mode();
-    let user_has_write_access = mode & 0o200;
-    let user_has_read_write_access = mode & 0o600;
-    let group_has_read_access = mode & 0o040;
-    let others_have_exec_access = mode & 0o001;
+    println!("{:?}", meta.permissions().mode() );
+    let mode = meta.permissions().mode();
+    let user_has_write_access = mode; // & 0o200;
+    let user_has_read_write_access= mode; // & 0o600;
+    let group_has_read_access = mode; // & 0o040;
+    let others_have_exec_access = mode; // & 0o001;
+    println!("{:o} {:o} {:o} {:o}", user_has_write_access, user_has_read_write_access, group_has_read_access, others_have_exec_access);
     let mut mode_count = 0;
     if user_has_write_access == 128 {
       print!("{}", color::Fg(color::Red));
