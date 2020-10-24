@@ -55,8 +55,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   draw_headline("permissions", 2, false);
   draw_headline("size", size_count - 4, true);
   draw_headline("last modified", 6, true);
-  draw_headline("group",get_group_by_gid(get_current_gid()).unwrap().name().to_str().unwrap().len() - 5, true);
-  draw_headline("user", get_user_by_uid(get_current_uid()).unwrap().name().to_str().unwrap().len() - 4, true);
+  let mut groups_size: i32 = 0;
+  if get_group_by_gid(get_current_gid()).unwrap().name().to_str().unwrap().len() - 5 < 1 {
+    groups_size = 0;
+  } else {
+    groups_size = get_group_by_gid(get_current_gid()).unwrap().name().to_str().unwrap().len() as i32 - 5;
+  }
+  draw_headline("group", groups_size as usize, true);
+  let mut user_size: i32 = 0;
+  if get_user_by_uid(get_current_uid()).unwrap().name().to_str().unwrap().len() - 4 < 1 {
+    user_size = 0;
+  } else {
+    user_size = get_user_by_uid(get_current_uid()).unwrap().name().to_str().unwrap().len() as i32 - 4;
+  }
+  draw_headline("user", user_size as usize, true);
   draw_headline("name", 0, true);
 
   print!("\n");
@@ -91,10 +103,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let meta = fs::symlink_metadata(&e)?;
     println!("{:?}", meta.permissions().mode() );
     let mode = meta.permissions().mode();
-    let user_has_write_access = mode; // & 0o200;
-    let user_has_read_write_access= mode; // & 0o600;
-    let group_has_read_access = mode; // & 0o040;
-    let others_have_exec_access = mode; // & 0o001;
+    let user_has_write_access = mode &  0o200;
+    let user_has_read_write_access= mode & 0o600;
+    let group_has_read_access = mode & 0o040;
+    let others_have_exec_access = mode & 0o001;
     println!("{:o} {:o} {:o} {:o}", user_has_write_access, user_has_read_write_access, group_has_read_access, others_have_exec_access);
     let mut mode_count = 0;
     if user_has_write_access == 128 {
