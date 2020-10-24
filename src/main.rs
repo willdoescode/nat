@@ -1,4 +1,5 @@
 extern crate pretty_bytes;
+extern crate libc;
 
 use ansi_term::Style;
 use chrono::{DateTime, Utc};
@@ -9,6 +10,7 @@ use std::{fs, io};
 use structopt::StructOpt;
 use termion::color;
 use users::{get_current_uid, get_group_by_gid, get_user_by_uid, uid_t, get_current_gid};
+use libc::{S_IRGRP, S_IROTH, S_IRUSR, S_IWGRP, S_IWOTH, S_IWUSR, S_IXGRP, S_IXOTH, S_IXUSR};
 
 mod single;
 
@@ -25,11 +27,15 @@ struct Cli {
     help = "File to search for"
   )]
   file: String,
+
+  #[structopt(short = "l", long = "headline", help = "enable the headline")]
+  headline_on: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
   let args = Cli::from_args();
   let directory = &args.path;
+  let headline_on = &args.headline_on;
 
   let entries = fs::read_dir(directory)?
     .map(|res| res.map(|e| e.path()))
@@ -51,10 +57,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   }
 
   let mut found = false;
-  
-  draw_headline("permissions", 2, false);
-  draw_headline("size", size_count - 4, true);
-  draw_headline("last modified", 6, true);
+ 
+  if *headline_on {
+  draw_headline("permissions", 0, false);
+  draw_headline("size", 0, true);
+  draw_headline("last modified", 0, true);
   let mut groups_size: i32 = 0;
   if get_group_by_gid(get_current_gid()).unwrap().name().to_str().unwrap().len() - 5 < 1 {
     groups_size = 0;
@@ -68,10 +75,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   } else {
     user_size = get_user_by_uid(get_current_uid()).unwrap().name().to_str().unwrap().len() as i32 - 4;
   }
-  draw_headline("user", user_size as usize, true);
+  draw_headline("user", 0, true);
   draw_headline("name", 0, true);
 
-  print!("\n");
+    print!("\n");
+  }
 
   if &args.file != "" {
     for e in &entries {
@@ -101,52 +109,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   for e in &entries {
     let meta = fs::symlink_metadata(&e)?;
-    println!("{:?}", meta.permissions().mode() );
     let mode = meta.permissions().mode();
-    let user_has_write_access = mode &  0o200;
-    let user_has_read_write_access= mode & 0o600;
-    let group_has_read_access = mode & 0o040;
-    let others_have_exec_access = mode & 0o001;
-    println!("{:o} {:o} {:o} {:o}", user_has_write_access, user_has_read_write_access, group_has_read_access, others_have_exec_access);
-    let mut mode_count = 0;
-    if user_has_write_access == 128 {
-      print!("{}", color::Fg(color::Red));
-      print!("w");
-      print!("{}", color::Fg(color::White));
-      print!("-");
-      mode_count += 2;
-    }
-    if user_has_read_write_access == 384 {
-      print!("{}", color::Fg(color::LightYellow));
-      print!("r");
-      print!("{}", color::Fg(color::LightRed));
-      print!("w");
-      print!("{}", color::Fg(color::White));
-      print!("-");
-      mode_count += 3;
-    }
-    if group_has_read_access == 32 {
-      print!("{}", color::Fg(color::Green));
-      print!("x");
-      print!("{}", color::Fg(color::LightYellow));
-      print!("a");
-      print!("{}", color::Fg(color::White));
-      print!("-");
-      mode_count += 3;
-    }
-    if others_have_exec_access == 1 {
-      print!("{}", color::Fg(color::Yellow));
-      print!("xw");
-      print!("{}", color::Fg(color::White));
-      print!("-");
-      mode_count += 3;
-    }
+    let mode_count = perms(mode as u16).len();
+    
     print!("{}", color::Fg(color::White));
-    print!("-@");
-    mode_count += 2;
-    for _ in 0..(13 - mode_count) {
-      print!(" ")
-    }
+
+    print!("{}", perms(mode as u16));
 
     for _ in 0..(size_count - convert(fs::symlink_metadata(&e)?.size() as f64).len()) {
       print!(" ")
@@ -232,4 +200,25 @@ fn get_user_name(uid: uid_t) -> String {
         .to_str()
         .unwrap()
         .to_string()
+}
+
+
+pub fn perms(mode: u16) -> String {
+	let user = triplet(mode, S_IRUSR, S_IWUSR, S_IXUSR);
+	let group = triplet(mode, S_IRGRP, S_IWGRP, S_IXGRP);
+	let other = triplet(mode, S_IROTH, S_IWOTH, S_IXOTH);
+	[user, group, other].join("")
+}
+
+pub fn triplet(mode: u16, read: u16, write: u16, execute: u16) -> String {
+	match (mode & read, mode & write, mode & execute) {
+		(0, 0, 0) => "---",
+		(_, 0, 0) => "r--",
+		(0, _, 0) => "-w-",
+		(0, 0, _) => "--x",
+		(_, 0, _) => "r-x",
+		(_, _, 0) => "rw-",
+		(0, _, _) => "-wx",
+		(_, _, _) => "rwx",
+	}.to_string()
 }

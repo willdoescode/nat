@@ -6,50 +6,20 @@ use std::fs;
 use std::os::unix::fs::MetadataExt;
 use termion::color;
 use users::{get_user_by_uid, get_group_by_gid};
+use libc::{S_IRGRP, S_IROTH, S_IRUSR, S_IWGRP, S_IWOTH, S_IWUSR, S_IXGRP, S_IXOTH, S_IXUSR};
 
 pub fn single(e: &std::path::PathBuf, size_count: usize) -> Result<(), Box<dyn std::error::Error>> {
-  let meta = fs::metadata(&e)?;
+  let meta = fs::symlink_metadata(&e)?;
   let mode = meta.mode();
-  let user_has_write_access = mode & 0o200;
-  let user_has_read_write_access = mode & 0o600;
-  let group_has_read_access = mode & 0o040;
-  let others_have_exec_access = mode & 0o001;
   let mut mode_count = 0;
-  if user_has_write_access == 128 {
-    print!("{}", color::Fg(color::Red));
-    print!("w");
-    print!("{}", color::Fg(color::White));
-    print!("-");
-    mode_count += 2;
-  }
-  if user_has_read_write_access == 384 {
-    print!("{}", color::Fg(color::LightYellow));
-    print!("r");
-    print!("{}", color::Fg(color::LightRed));
-    print!("w");
-    print!("{}", color::Fg(color::White));
-    print!("-");
-    mode_count += 3;
-  }
-  if group_has_read_access == 32 {
-    print!("{}", color::Fg(color::Green));
-    print!("x");
-    print!("{}", color::Fg(color::LightYellow));
-    print!("a");
-    print!("{}", color::Fg(color::White));
-    print!("-");
-    mode_count += 3;
-  }
-  if others_have_exec_access == 1 {
-    print!("{}", color::Fg(color::Yellow));
-    print!("xw");
-    print!("{}", color::Fg(color::White));
-    print!("-");
-    mode_count += 3;
-  }
+  
+  let mode_count = perms(mode as u16).len();
+  
   print!("{}", color::Fg(color::White));
-  print!("-@");
-  mode_count += 2;
+
+  print!("{}", perms(mode as u16));
+
+
   for _ in 0..(13 - mode_count) {
     print!(" ")
   }
@@ -112,4 +82,24 @@ pub fn single(e: &std::path::PathBuf, size_count: usize) -> Result<(), Box<dyn s
     );
   }
   Ok(())
+}
+
+fn triplet(mode: u16, read: u16, write: u16, execute: u16) -> String {
+	match (mode & read, mode & write, mode & execute) {
+		(0, 0, 0) => "---",
+		(_, 0, 0) => "r--",
+		(0, _, 0) => "-w-",
+		(0, 0, _) => "--x",
+		(_, 0, _) => "r-x",
+		(_, _, 0) => "rw-",
+		(0, _, _) => "-wx",
+		(_, _, _) => "rwx",
+	}.to_string()
+}
+
+fn perms(mode: u16) -> String {
+	let user = triplet(mode, S_IRUSR, S_IWUSR, S_IXUSR);
+	let group = triplet(mode, S_IRGRP, S_IWGRP, S_IXGRP);
+	let other = triplet(mode, S_IROTH, S_IWOTH, S_IXOTH);
+	[user, group, other].join("")
 }

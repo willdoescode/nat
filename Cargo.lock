@@ -116,10 +116,11 @@ dependencies = [
 
 [[package]]
 name = "nat"
-version = "1.0.8"
+version = "1.0.9"
 dependencies = [
  "ansi_term",
  "chrono",
+ "libc",
  "pretty-bytes",
  "structopt",
  "termion",
