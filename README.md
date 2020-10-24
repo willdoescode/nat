@@ -18,6 +18,8 @@ Nats features include
 - An easy to use file search
 - A splash of color to distinguish between files and folders
 
+## Linux is not currently supported
+
 ## Highlights
 
 - A rather large german tech blog wrote an [article](https://www.heise.de/news/In-Rust-geschrieben-und-uebersichtlicher-nat-will-ls-ersetzen-4937429.html) about nat
