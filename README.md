@@ -41,9 +41,9 @@ cd /tmp
 git clone https://github.com/willdoescode/nat.git
 cd /tmp/nat
 
-cargo build
+cargo build --release
 
-cd target/debug
+cd target/release
 
 ./nat
 ```
