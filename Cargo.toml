@@ -14,3 +14,9 @@ users = "*"
 pretty-bytes = "*"
 ansi_term = "*"
 structopt = "*"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
