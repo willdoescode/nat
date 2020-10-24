@@ -18,7 +18,6 @@ Nats features include
 - An easy to use file search
 - A splash of color to distinguish between files and folders
 
-## Linux is not currently supported
 
 ## Highlights
 
@@ -26,13 +25,33 @@ Nats features include
 
 ## Usage
 
-### Installation
+### Installation macOs
 
 install the latest release from
 https://github.com/willdoescode/nat/releases/
 
 then add the nat file to your path
 /usr/local/bin/
+
+### Installation Linux
+```bash
+apt-get install rustc cargo
+cd /tmp
+
+git clone https://github.com/willdoescode/nat.git
+cd /tmp/nat
+
+cargo build
+
+cd target/debug
+
+./nat
+```
+
+### On Arch Linux
+```bash
+yay -S nat-git
+```
 
 #### Using nat with ls
 
