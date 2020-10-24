@@ -190,6 +190,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           .paint(e.file_name().unwrap().to_str().unwrap())
       );
     }
+    print!("{}", color::Fg(color::Reset));
   }
   Ok(())
 }
