@@ -204,9 +204,9 @@ fn get_user_name(uid: uid_t) -> String {
 
 
 pub fn perms(mode: u16) -> String {
-	let user = triplet(mode, S_IRUSR, S_IWUSR, S_IXUSR);
-	let group = triplet(mode, S_IRGRP, S_IWGRP, S_IXGRP);
-	let other = triplet(mode, S_IROTH, S_IWOTH, S_IXOTH);
+	let user = triplet(mode, S_IRUSR as u16, S_IWUSR as u16, S_IXUSR as u16);
+	let group = triplet(mode, S_IRGRP as u16, S_IWGRP as u16, S_IXGRP as u16);
+	let other = triplet(mode, S_IROTH as u16, S_IWOTH as u16, S_IXOTH as u16);
 	[user, group, other].join("")
 }
 
