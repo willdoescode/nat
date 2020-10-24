@@ -48,6 +48,17 @@ cd target/release
 ./nat
 ```
 
+To install nat locally
+```bash
+cd /tmp/nat
+cargo install --path .
+```
+and add this line to your `$HOME/.bashrc`
+
+```bash
+export PATH=$PATH:$HOME/.cargo/bin
+```
+
 ### On Arch Linux
 ```bash
 yay -S nat-git
