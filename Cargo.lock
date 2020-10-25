@@ -116,7 +116,7 @@ dependencies = [
 
 [[package]]
 name = "nat"
-version = "1.0.9.1"
+version = "1.0.9"
 dependencies = [
  "ansi_term",
  "chrono",

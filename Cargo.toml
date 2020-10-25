@@ -1,6 +1,6 @@
 [package]
 name = "nat"
-version = "1.0.9.1"
+version = "1.0.9"
 authors = ["Will Lane <williamlane923@gmail.com>"]
 description = "nat - the 'ls' replacement you never knew you needed"
 license = "MIT"
