@@ -12,9 +12,9 @@ pub fn single(e: &std::path::PathBuf, size_count: usize) -> Result<(), Box<dyn s
   let meta = fs::symlink_metadata(&e)?;
   let mode = meta.mode();
   let mut mode_count = 0;
-  
+
   let mode_count = perms(mode as u16).len();
-  
+
   print!("{}", color::Fg(color::White));
 
   print!("{}", perms(mode as u16));
@@ -31,8 +31,8 @@ pub fn single(e: &std::path::PathBuf, size_count: usize) -> Result<(), Box<dyn s
   print!(
     " {}",
     Style::new()
-      .bold()
-      .paint(convert(fs::metadata(&e)?.size() as f64))
+    .bold()
+    .paint(convert(fs::metadata(&e)?.size() as f64))
   );
 
   if let Ok(time) = e.metadata()?.modified() {
@@ -44,29 +44,29 @@ pub fn single(e: &std::path::PathBuf, size_count: usize) -> Result<(), Box<dyn s
 
   print!("{}", color::Fg(color::Yellow));
 
-    print!(
-      " {} ",
-      Style::new().bold().paint(
-        get_group_by_gid(fs::metadata(e)?.gid())
-          .unwrap()
-          .name()
-          .to_str()
-          .unwrap()
-      )
-    );
+  print!(
+    " {} ",
+    Style::new().bold().paint(
+      get_group_by_gid(fs::metadata(e)?.gid())
+      .unwrap()
+      .name()
+      .to_str()
+      .unwrap()
+    )
+  );
 
-    print!("{}", color::Fg(color::LightYellow));
+  print!("{}", color::Fg(color::LightYellow));
 
-    print!(
-      "{} ",
-      Style::new().bold().paint(
-        get_user_by_uid(fs::metadata(e)?.uid())
-          .unwrap()
-          .name()
-          .to_str()
-          .unwrap()
-      )
-    );
+  print!(
+    "{} ",
+    Style::new().bold().paint(
+      get_user_by_uid(fs::metadata(e)?.uid())
+      .unwrap()
+      .name()
+      .to_str()
+      .unwrap()
+    )
+  );
 
   print!("{}", color::Fg(color::White));
   if e.metadata()?.is_dir() {
@@ -77,29 +77,29 @@ pub fn single(e: &std::path::PathBuf, size_count: usize) -> Result<(), Box<dyn s
     println!(
       "{}",
       Style::new()
-        .bold()
-        .paint(e.file_name().unwrap().to_str().unwrap())
+      .bold()
+      .paint(e.file_name().unwrap().to_str().unwrap())
     );
   }
   Ok(())
 }
 
 fn triplet(mode: u16, read: u16, write: u16, execute: u16) -> String {
-	match (mode & read, mode & write, mode & execute) {
-		(0, 0, 0) => "---",
-		(_, 0, 0) => "r--",
-		(0, _, 0) => "-w-",
-		(0, 0, _) => "--x",
-		(_, 0, _) => "r-x",
-		(_, _, 0) => "rw-",
-		(0, _, _) => "-wx",
-		(_, _, _) => "rwx",
-	}.to_string()
+  match (mode & read, mode & write, mode & execute) {
+    (0, 0, 0) => "---",
+    (_, 0, 0) => "r--",
+    (0, _, 0) => "-w-",
+    (0, 0, _) => "--x",
+    (_, 0, _) => "r-x",
+    (_, _, 0) => "rw-",
+    (0, _, _) => "-wx",
+    (_, _, _) => "rwx",
+  }.to_string()
 }
 
 fn perms(mode: u16) -> String {
-	let user = triplet(mode, S_IRUSR as u16, S_IWUSR as u16, S_IXUSR as u16);
-	let group = triplet(mode, S_IRGRP as u16, S_IWGRP as u16, S_IXGRP as u16);
-	let other = triplet(mode, S_IROTH as u16, S_IWOTH as u16, S_IXOTH as u16);
-	[user, group, other].join("")
+  let user = triplet(mode, S_IRUSR as u16, S_IWUSR as u16, S_IXUSR as u16);
+  let group = triplet(mode, S_IRGRP as u16, S_IWGRP as u16, S_IXGRP as u16);
+  let other = triplet(mode, S_IROTH as u16, S_IWOTH as u16, S_IXOTH as u16);
+  [user, group, other].join("")
 }
