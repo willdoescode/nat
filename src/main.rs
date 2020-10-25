@@ -30,13 +30,17 @@ struct Cli {
 
   #[structopt(short = "l", long = "headline", help = "enable the headline")]
   headline_on: bool,
+
+
+  #[structopt(short = "a", help = "hides hidden files")]
+  hidden_files: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
   let args = Cli::from_args();
   let directory = &args.path;
   let headline_on = &args.headline_on;
-
+  let hidden_files = &args.hidden_files;
   let entries = fs::read_dir(directory)?
     .map(|res| res.map(|e| e.path()))
     .collect::<Result<Vec<_>, io::Error>>()?;
@@ -108,6 +112,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   }
 
   for e in &entries {
+    if !&e.file_name().unwrap().to_str().unwrap().starts_with(".") ||*hidden_files {
     let meta = fs::symlink_metadata(&e)?;
     let mode = meta.permissions().mode();
     let mode_count = perms(mode as u16).len();
@@ -174,6 +179,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       );
     }
     print!("{}", color::Fg(color::Reset));
+    }
   }
   Ok(())
 }
