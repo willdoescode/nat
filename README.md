@@ -57,6 +57,8 @@ cd target/release
 ./nat
 ```
 
+### Installing on Linux
+
 To install nat locally
 ```bash
 cd /tmp/nat
