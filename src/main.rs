@@ -67,18 +67,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   draw_headline("size", 0, true);
   draw_headline("last modified", 0, true);
   let mut groups_size: i32 = 0;
-  if get_group_by_gid(get_current_gid()).unwrap().name().to_str().unwrap().len() - 5 < 1 {
-    groups_size = 0;
-  } else {
-    groups_size = get_group_by_gid(get_current_gid()).unwrap().name().to_str().unwrap().len() as i32 - 5;
-  }
-  draw_headline("group", groups_size as usize, true);
-  let mut user_size: i32 = 0;
-  if get_user_by_uid(get_current_uid()).unwrap().name().to_str().unwrap().len() - 4 < 1 {
-    user_size = 0;
-  } else {
-    user_size = get_user_by_uid(get_current_uid()).unwrap().name().to_str().unwrap().len() as i32 - 4;
-  }
   draw_headline("user", 0, true);
   draw_headline("name", 0, true);
 
