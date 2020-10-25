@@ -19,6 +19,9 @@ Nats features include
 - A splash of color to distinguish between files and folders
 
 
+## Join the nat [discord server](https://discord.gg/2Fn8veP)
+
+
 ## Highlights
 
 - A rather large german tech blog wrote an [article](https://www.heise.de/news/In-Rust-geschrieben-und-uebersichtlicher-nat-will-ls-ersetzen-4937429.html) about nat
