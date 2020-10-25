@@ -33,6 +33,12 @@ https://github.com/willdoescode/nat/releases/
 then add the nat file to your path
 /usr/local/bin/
 
+to alias ls to nat
+add 
+```bash
+alias ls='nat'
+``` in your zshrc at ~/.zshrc 
+
 ### Installation Linux
 ```bash
 apt-get install rustc cargo
