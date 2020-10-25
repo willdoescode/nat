@@ -110,7 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 
-fn draw_headlines(on: bool) {
+pub fn draw_headlines(on: bool) {
   if on {
     draw_headline("permissions", 0, false);
     draw_headline("size", 0, true);
