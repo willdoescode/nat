@@ -40,7 +40,8 @@ to alias ls to nat
 add 
 ```bash
 alias ls='nat'
-``` in your zshrc at ~/.zshrc 
+``` 
+in your zshrc at ~/.zshrc 
 
 ### Installation Linux
 ```bash
@@ -56,8 +57,6 @@ cd target/release
 
 ./nat
 ```
-
-### Installing on Linux
 
 To install nat locally
 ```bash
