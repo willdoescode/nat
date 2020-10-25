@@ -9,7 +9,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::{fs, io};
 use structopt::StructOpt;
 use termion::color;
-use users::{get_current_uid, get_group_by_gid, get_user_by_uid, uid_t, get_current_gid};
+use users::{get_group_by_gid, get_user_by_uid, uid_t};
 use libc::{S_IRGRP, S_IROTH, S_IRUSR, S_IWGRP, S_IWOTH, S_IWUSR, S_IXGRP, S_IXOTH, S_IXUSR};
 
 mod single;
