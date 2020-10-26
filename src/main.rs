@@ -247,12 +247,11 @@ pub fn single(e: &std::path::PathBuf, size_count: usize, wide_mode: bool) -> Res
   Ok(())
 }
 
-
 pub fn perms(mode: u16) -> String {
   let user = triplet(mode, S_IRUSR as u16, S_IWUSR as u16, S_IXUSR as u16);
   let group = triplet(mode, S_IRGRP as u16, S_IWGRP as u16, S_IXGRP as u16);
   let other = triplet(mode, S_IROTH as u16, S_IWOTH as u16, S_IXOTH as u16);
-  [user, group, other].join("")
+  [format!("{}{}", color::Fg(color::Blue), user), format!("{}{}", color::Fg(color::LightRed), group), format!("{}{}", color::Fg(color::Yellow), other)].join("")
 }
 
 pub fn triplet(mode: u16, read: u16, write: u16, execute: u16) -> String {
