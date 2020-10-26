@@ -67,6 +67,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "filetime"
+version = "0.2.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ed85775dcc68644b5c950ac06a2b23768d3bc9390464151aaf27136998dcf9e"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "redox_syscall",
+ "winapi",
+]
+
+[[package]]
 name = "getopts"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -120,6 +132,7 @@ version = "1.2.1"
 dependencies = [
  "ansi_term",
  "chrono",
+ "filetime",
  "libc",
  "pretty-bytes",
  "structopt",

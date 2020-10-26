@@ -1,8 +1,8 @@
 extern crate pretty_bytes;
 extern crate libc;
 
+use filetime::FileTime;
 use ansi_term::Style;
-use chrono::{DateTime, Utc};
 use chrono::prelude::*;
 use pretty_bytes::converter::convert;
 use std::os::unix::fs::MetadataExt;
@@ -192,10 +192,12 @@ pub fn file_size(size_count: usize, e: &&std::path::PathBuf) -> Result<(), Box<d
 }
 
 pub fn time_mod(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-  if let Ok(time) = e.symlink_metadata()?.modified() {
+  if let Ok(_) = e.symlink_metadata()?.modified() {
+    let mtime = FileTime::from_last_modification_time(&e.symlink_metadata().unwrap());
+    let d = NaiveDateTime::from_timestamp(mtime.unix_seconds(), 0);
     print!("{}", color::Fg(color::LightRed));
-    let datetime: DateTime<Utc> = time.into();
-    print!("{} ", datetime.format("%a %b %e %T %Y"));
+    let datetime =  d;
+    print!("{} ", datetime.format("%b %e %T "));
   }
   Ok(())
 }

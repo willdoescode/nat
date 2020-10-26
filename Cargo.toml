@@ -15,6 +15,7 @@ pretty-bytes = "*"
 ansi_term = "*"
 structopt = "*"
 libc = "*"
+filetime = "*"
 
 [profile.dev]
 opt-level = 0
