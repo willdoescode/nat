@@ -3,6 +3,7 @@ extern crate libc;
 
 use ansi_term::Style;
 use chrono::{DateTime, Utc};
+use chrono::prelude::*;
 use pretty_bytes::converter::convert;
 use std::os::unix::fs::MetadataExt;
 use std::os::unix::fs::PermissionsExt;
@@ -194,8 +195,7 @@ pub fn time_mod(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>
   if let Ok(time) = e.symlink_metadata()?.modified() {
     print!("{}", color::Fg(color::LightRed));
     let datetime: DateTime<Utc> = time.into();
-    print!("{} ", datetime.format("%d-%m-%Y"));
-    print!("{} ", datetime.format("%T"))
+    print!("{} ", datetime.format("%a %b %e %T %Y"));
   }
   Ok(())
 }
