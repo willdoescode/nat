@@ -197,7 +197,7 @@ pub fn time_mod(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>
     let d = NaiveDateTime::from_timestamp(mtime.unix_seconds(), 0);
     print!("{}", color::Fg(color::LightRed));
     let datetime =  d;
-    print!("{} ", datetime.format("%b %e %T "));
+    print!("{} ", datetime.format("%b %e %T"));
   }
   Ok(())
 }
