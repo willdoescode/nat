@@ -28,21 +28,25 @@ struct Cli {
   )]
     file: String,
 
-    #[structopt(short = "l", long = "headline", help = "enable the headline")]
+    #[structopt(short = "l", long = "headline", help = "Enable the headline")]
     headline_on: bool,
 
-    #[structopt(short = "a", help = "hides hidden files")]
+    #[structopt(short = "a", long = "arehidden", help = "Hides hidden files")]
     hidden_files: bool,
+
+    #[structopt(short = "w", long = "wide", help = "Enables wide mode")]
+    wide_mode: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-  let args = Cli::from_args();
-  let directory = &args.path;
-  let headline_on = &args.headline_on;
-  let hidden_files = &args.hidden_files;
-  let entries = fs::read_dir(directory)?
-    .map(|res| res.map(|e| e.path()))
-    .collect::<Result<Vec<_>, io::Error>>()?;
+    let args = Cli::from_args();
+    let directory = &args.path;
+    let headline_on = &args.headline_on;
+    let hidden_files = &args.hidden_files;
+    let wide_mode = &args.wide_mode;
+    let entries = fs::read_dir(directory)?
+      .map(|res| res.map(|e| e.path()))
+      .collect::<Result<Vec<_>, io::Error>>()?;
 
     let mut size_count = 4;
     let mut group_size = 8;
@@ -74,7 +78,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .to_lowercase()
             .contains(&args.file.to_lowercase())
         {
-          let _ = single::single(e, size_count);
+          let _ = single::single(e, size_count, *wide_mode);
           found = true;
         }
       }
@@ -87,7 +91,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           .paint(format!("{} could not be found", &args.file))
         );
       }
-      std::process::exit(0)
+      std::process::exit(0);
     }
 
     for e in &entries {
@@ -102,7 +106,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let _ = show_user_name(e);
 
-        let _ = show_file_name(&e);
+        let _ = show_file_name(&e, *wide_mode);
       }
     }
     Ok(())
@@ -182,19 +186,29 @@ pub fn show_user_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::
   Ok(())
 }
 
-pub fn show_file_name(e: &&std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+pub fn show_file_name(e: &&std::path::PathBuf, wide_mode: bool) -> Result<(), Box<dyn std::error::Error>> {
   print!("{}", color::Fg(color::White));
   if e.symlink_metadata()?.is_dir() {
     print!("{}", color::Fg(color::LightBlue));
-    println!("{}/", &e.file_name().unwrap().to_str().unwrap());
+    print!("{}/", &e.file_name().unwrap().to_str().unwrap());
+    if !wide_mode {
+      print!("\n");
+    } else {
+      print!(" ");
+    }
   } else {
     print!("{}", color::Fg(color::LightGreen));
-    println!(
+    print!(
       "{}",
       Style::new()
       .bold()
       .paint(e.file_name().unwrap().to_str().unwrap())
     );
+    if !wide_mode {
+      print!("\n");
+    } else {
+      print!(" ");
+    }
   }
   print!("{}", color::Fg(color::Reset));
   Ok(())
