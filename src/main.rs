@@ -31,7 +31,6 @@ struct Cli {
     #[structopt(short = "l", long = "headline", help = "enable the headline")]
     headline_on: bool,
 
-
     #[structopt(short = "a", help = "hides hidden files")]
     hidden_files: bool,
 }
@@ -134,10 +133,10 @@ pub fn file_size(size_count: usize, e: &&std::path::PathBuf) -> Result<(), Box<d
   }
   print!("{}", color::Fg(color::Green));
   print!(
-      " {}",
-      Style::new()
-        .bold()
-        .paint(convert(fs::symlink_metadata(&e)?.size() as f64))
+    " {}",
+    Style::new()
+    .bold()
+    .paint(convert(fs::symlink_metadata(&e)?.size() as f64))
   );
   Ok(())
 }
@@ -159,10 +158,10 @@ pub fn show_group_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error:
     " {} ",
     Style::new().bold().paint(
       get_group_by_gid(fs::symlink_metadata(e)?.gid())
-          .unwrap()
-          .name()
-          .to_str()
-          .unwrap()
+      .unwrap()
+      .name()
+      .to_str()
+      .unwrap()
     )
   );
   Ok(())
@@ -174,10 +173,10 @@ pub fn show_user_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::
     "{} ",
     Style::new().bold().paint(
       get_user_by_uid(fs::symlink_metadata(e)?.uid())
-          .unwrap()
-          .name()
-          .to_str()
-          .unwrap()
+      .unwrap()
+      .name()
+      .to_str()
+      .unwrap()
     )
   );
   Ok(())
@@ -193,8 +192,8 @@ pub fn show_file_name(e: &&std::path::PathBuf) -> Result<(), Box<dyn std::error:
     println!(
       "{}",
       Style::new()
-          .bold()
-          .paint(e.file_name().unwrap().to_str().unwrap())
+      .bold()
+      .paint(e.file_name().unwrap().to_str().unwrap())
     );
   }
   print!("{}", color::Fg(color::Reset));
