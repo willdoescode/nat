@@ -44,6 +44,9 @@ alias ls='nat'
 in your zshrc at ~/.zshrc 
 
 ### Installation Linux
+
+#### Linux binary also in releases compiled using docker
+
 ```bash
 apt-get install rustc cargo
 cd /tmp
