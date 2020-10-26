@@ -48,7 +48,10 @@ pub struct Cli {
     perms_on: bool,
 
     #[structopt(short = "u", long = "user", help = "Disables the file user output")]
-    user_on: bool
+    user_on: bool,
+
+    #[structopt(long = "nsort", help = "Turns off sorting")]
+    is_sorted: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -62,6 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let group_on = &args.group_on;
     let perms_on = &args.perms_on;
     let user_on = &args.user_on;
+    let is_sorted = &args.is_sorted;
 
     let entries = fs::read_dir(directory)?
       .map(|res| res.map(|e| e.path()))
@@ -118,7 +122,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for e in &entries {
       if !&e.file_name().unwrap().to_str().unwrap().starts_with(".") ||*hidden_files {
 
-        if *&e.is_file() {
+        if *&e.is_file() && !*is_sorted {
           dirs.push(*&e);
         } else {
 
