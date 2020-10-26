@@ -12,8 +12,6 @@ use termion::color;
 use users::{get_group_by_gid, get_user_by_uid, uid_t};
 use libc::{S_IRGRP, S_IROTH, S_IRUSR, S_IWGRP, S_IWOTH, S_IWUSR, S_IXGRP, S_IXOTH, S_IXUSR};
 
-mod single;
-
 #[derive(StructOpt, Debug)]
 #[structopt(name = "nat", about = "the ls replacement you never knew you needed")]
 struct Cli {
@@ -78,7 +76,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .to_lowercase()
             .contains(&args.file.to_lowercase())
         {
-          let _ = single::single(e, size_count, *wide_mode);
+          let _ = single(e, size_count, *wide_mode);
           found = true;
         }
       }
@@ -236,6 +234,17 @@ pub fn get_user_name(uid: uid_t) -> String {
     .to_str()
     .unwrap()
     .to_string()
+}
+
+
+pub fn single(e: &std::path::PathBuf, size_count: usize, wide_mode: bool) -> Result<(), Box<dyn std::error::Error>> {
+  let _ = file_perms(&e);
+  let _ = file_size(size_count, &e);
+  let _ = time_mod(e);
+  let _ = show_group_name(e);
+  let _ = show_user_name(e);
+  let _ = show_file_name(&e, wide_mode);
+  Ok(())
 }
 
 
