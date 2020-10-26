@@ -113,8 +113,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       std::process::exit(0);
     }
 
+    let mut dirs: Vec<&std::path::PathBuf> = vec![];
+
     for e in &entries {
       if !&e.file_name().unwrap().to_str().unwrap().starts_with(".") ||*hidden_files {
+
+        if *&e.is_file() {
+          dirs.push(*&e);
+        } else {
 
         if !perms_on {
           let _ = file_perms(&e);
@@ -137,8 +143,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         let _ = show_file_name(&e, *wide_mode);
+        }
       }
     }
+    for e in &dirs {
+      let _ = single(e, size_count, *wide_mode);
+    }
+
     Ok(())
 }
 
