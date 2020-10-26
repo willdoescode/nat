@@ -116,7 +116,7 @@ Imagine file permissions as three ones or zeros
 010 write
 001 execute
 101 read and execute
-001 read and write
+110 read and write
 011 write and execute
 111 read write and execute
 ```
