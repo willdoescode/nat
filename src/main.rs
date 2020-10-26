@@ -87,7 +87,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           .paint(format!("{} could not be found", &args.file))
         );
       }
-      std::process::exit(1)
+      std::process::exit(0)
     }
 
     for e in &entries {
