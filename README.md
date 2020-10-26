@@ -105,3 +105,34 @@ cd nat
 ```bash
 rm /usr/local/bin/nat
 ```
+
+## Understanding permissions output
+
+Imagine file permissions as three ones or zeros
+
+```
+000 no access
+100 read
+010 write
+001 execute
+101 read and execute
+001 read and write
+011 write and execute
+111 read write and execute
+```
+
+what nat does is it combines these permissions for
+
+user-group-other
+
+so if the user has read write and execute and the group has read and write and other has no perms the output will look like
+
+```
+rwxrw----
+```
+
+If all groups have read write and execute the output would look like
+
+```
+rwxrwxrwx
+```
