@@ -14,7 +14,7 @@ use libc::{S_IRGRP, S_IROTH, S_IRUSR, S_IWGRP, S_IWOTH, S_IWUSR, S_IXGRP, S_IXOT
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "nat", about = "the ls replacement you never knew you needed")]
-struct Cli {
+pub struct Cli {
   #[structopt(parse(from_os_str), default_value = ".", help = "Give me a directory")]
   path: std::path::PathBuf,
 
@@ -26,14 +26,29 @@ struct Cli {
   )]
     file: String,
 
-    #[structopt(short = "l", long = "headline", help = "Enable the headline")]
+    #[structopt(short = "l", long = "headline", help = "Enables helper headline")]
     headline_on: bool,
 
-    #[structopt(short = "a", long = "arehidden", help = "Hides hidden files")]
+    #[structopt(short = "a", long = "arehidden", help = "Shows hidden files")]
     hidden_files: bool,
 
-    #[structopt(short = "w", long = "wide", help = "Enables wide mode")]
+    #[structopt(short = "w", long = "wide", help = "Enables wide mode output")]
     wide_mode: bool,
+
+    #[structopt(short = "t", long = "time", help = "Disables the file time modified output")]
+    time_on: bool,
+    
+    #[structopt(short = "s", long = "size", help = "Disables file size output")]
+    size_on: bool,
+
+    #[structopt(short = "g", long = "group", help = "Disables the file group output")]
+    group_on: bool,
+
+    #[structopt(short = "p", long = "perms", help = "Disables the permissions output")]
+    perms_on: bool,
+
+    #[structopt(short = "u", long = "user", help = "Disables the file user output")]
+    user_on: bool
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -42,6 +57,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let headline_on = &args.headline_on;
     let hidden_files = &args.hidden_files;
     let wide_mode = &args.wide_mode;
+    let time_on = &args.time_on;
+    let size_on = &args.size_on;
+    let group_on = &args.group_on;
+    let perms_on = &args.perms_on;
+    let user_on = &args.user_on;
+
     let entries = fs::read_dir(directory)?
       .map(|res| res.map(|e| e.path()))
       .collect::<Result<Vec<_>, io::Error>>()?;
@@ -94,15 +115,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for e in &entries {
       if !&e.file_name().unwrap().to_str().unwrap().starts_with(".") ||*hidden_files {
-        let _ = file_perms(&e);
 
-        let _ = file_size(size_count, &e);
+        if !perms_on {
+          let _ = file_perms(&e);
+        }
 
-        let _ = time_mod(e);
+        if !size_on {
+          let _ = file_size(size_count, &e);
+        }
 
-        let _ = show_group_name(e);
+        if !time_on {
+          let _ = time_mod(e);
+        }
 
-        let _ = show_user_name(e);
+        if !group_on {
+          let _ = show_group_name(e);
+        }
+
+        if !user_on {
+          let _ = show_user_name(e);
+        }
 
         let _ = show_file_name(&e, *wide_mode);
       }
@@ -125,7 +157,7 @@ pub fn draw_headlines(on: bool) {
 pub fn file_perms(e: &&std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
   let mode = fs::symlink_metadata(&e)?.permissions().mode();
   print!("{}", color::Fg(color::White));
-  print!("{}", perms(mode as u16));
+  print!("{} ", perms(mode as u16));
   Ok(())
 }
 
@@ -135,7 +167,7 @@ pub fn file_size(size_count: usize, e: &&std::path::PathBuf) -> Result<(), Box<d
   }
   print!("{}", color::Fg(color::Green));
   print!(
-    " {}",
+    "{} ",
     Style::new()
     .bold()
     .paint(convert(fs::symlink_metadata(&e)?.size() as f64))
@@ -147,8 +179,8 @@ pub fn time_mod(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>
   if let Ok(time) = e.symlink_metadata()?.modified() {
     print!("{}", color::Fg(color::LightRed));
     let datetime: DateTime<Utc> = time.into();
-    print!(" {} ", datetime.format("%d-%m-%Y"));
-    print!("{}", datetime.format("%T"))
+    print!("{} ", datetime.format("%d-%m-%Y"));
+    print!("{} ", datetime.format("%T"))
   }
   Ok(())
 }
@@ -157,7 +189,7 @@ pub fn show_group_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error:
   print!("{}", color::Fg(color::LightBlue));
 
   print!(
-    " {} ",
+    "{} ",
     Style::new().bold().paint(
       get_group_by_gid(fs::symlink_metadata(e)?.gid())
       .unwrap()
@@ -238,11 +270,27 @@ pub fn get_user_name(uid: uid_t) -> String {
 
 
 pub fn single(e: &std::path::PathBuf, size_count: usize, wide_mode: bool) -> Result<(), Box<dyn std::error::Error>> {
-  let _ = file_perms(&e);
-  let _ = file_size(size_count, &e);
-  let _ = time_mod(e);
-  let _ = show_group_name(e);
-  let _ = show_user_name(e);
+  let args = Cli::from_args();
+
+  if !&args.perms_on {
+    let _ = file_perms(&e);
+  }
+  
+  if !&args.size_on {
+    let _ = file_size(size_count, &e);
+  }
+
+  if !&args.time_on {
+    let _ = time_mod(e);
+  }
+
+  if !&args.group_on {
+    let _ = show_group_name(e);
+  }
+
+  if !&args.user_on {
+    let _ = show_user_name(e);
+  }
   let _ = show_file_name(&e, wide_mode);
   Ok(())
 }
