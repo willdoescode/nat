@@ -1,5 +1,10 @@
 # ⚡️ nat ⚡️
 
+![banner](natbanner.png)
+
+![demo](natdemo.png)
+
+
 [What is nat?](https://github.com/willdoescode/nat#what-is-nat)
 
 [Highlights](https://github.com/willdoescode/nat#highlights)
@@ -7,10 +12,6 @@
 [Installation](https://github.com/willdoescode/nat#installation)
 
 [Understanding permissions output](https://github.com/willdoescode/nat#understanding-permissions-output)
-
-![banner](natbanner.png)
-
-![demo](natdemo.png)
 
 ## What is nat?
 
