@@ -43,7 +43,15 @@ Nats features include
 cargo install natls
 ```
 
+### Alternative (linux)
+
+```bash
+sudo snap install natls
+```
+
 ### Manual installation
+
+#### Linux
 
 ```bash
 apt-get install rustc cargo
