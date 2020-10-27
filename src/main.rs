@@ -194,7 +194,7 @@ pub fn file_size(size_count: usize, e: &&std::path::PathBuf) -> Result<(), Box<d
 pub fn time_mod(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
   if let Ok(_) = e.symlink_metadata()?.modified() {
     let mtime = FileTime::from_last_modification_time(&e.symlink_metadata().unwrap());
-    let d = NaiveDateTime::from_timestamp(mtime.unix_seconds(), 0);
+    let d = NaiveDateTime::from_timestamp(mtime.seconds(), 0);
     print!("{}", color::Fg(color::LightRed));
     let datetime =  d;
     print!("{} ", datetime.format("%b %e %T"));
