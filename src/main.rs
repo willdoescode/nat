@@ -53,6 +53,10 @@ pub struct Cli {
 
     #[structopt(long = "nsort", help = "Turns off sorting")]
     is_sorted: bool,
+
+    /// Specify time format https://docs.rs/chrono/*/chrono/format/strftime/index.html
+    #[structopt(long = "time-format", default_value = "%b %e %T")]
+    time_format: String,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -67,6 +71,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let perms_on = &args.perms_on;
   let user_on = &args.user_on;
   let is_sorted = &args.is_sorted;
+  let time_format = &args.time_format;
 
   let entries = fs::read_dir(directory)?
     .map(|res| res.map(|e| e.path()))
@@ -102,7 +107,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .to_lowercase()
             .contains(&args.file.to_lowercase())
         {
-          let _ = single(e, size_count, *wide_mode);
+          let _ = single(e, size_count, *wide_mode, time_format);
           found = true;
         }
       }
@@ -136,7 +141,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           }
 
           if !time_on {
-            let _ = time_mod(e);
+            let _ = time_mod(e, time_format);
           }
 
           if !group_on {
@@ -152,7 +157,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       }
     }
     for e in &dirs {
-      let _ = single(e, size_count, *wide_mode);
+      let _ = single(e, size_count, *wide_mode, time_format);
     }
 
     Ok(())
@@ -202,13 +207,13 @@ pub fn file_size(size_count: usize, e: &&std::path::PathBuf) -> Result<(), Box<d
   Ok(())
 }
 
-pub fn time_mod(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+pub fn time_mod(e: &std::path::PathBuf, time_format: &str) -> Result<(), Box<dyn std::error::Error>> {
   if let Ok(_) = e.symlink_metadata()?.modified() {
     let mtime = FileTime::from_last_modification_time(&e.symlink_metadata().unwrap());
     let d = NaiveDateTime::from_timestamp(mtime.seconds() as i64, 0);
     print!("{}", color::Fg(color::LightRed));
     let datetime =  d;
-    print!("{} ", datetime.format("%b %e %T"));
+    print!("{} ", datetime.format(time_format));
   }
   Ok(())
 }
@@ -295,7 +300,7 @@ pub fn get_user_name(uid: uid_t) -> String {
 }
 
 
-pub fn single(e: &std::path::PathBuf, size_count: usize, wide_mode: bool) -> Result<(), Box<dyn std::error::Error>> {
+pub fn single(e: &std::path::PathBuf, size_count: usize, wide_mode: bool, time_format: &str) -> Result<(), Box<dyn std::error::Error>> {
   let args = Cli::from_args();
 
   if !&args.perms_on {
@@ -307,7 +312,7 @@ pub fn single(e: &std::path::PathBuf, size_count: usize, wide_mode: bool) -> Res
   }
 
   if !&args.time_on {
-    let _ = time_mod(e);
+    let _ = time_mod(e, time_format);
   }
 
   if !&args.group_on {
