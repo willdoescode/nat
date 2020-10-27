@@ -1,8 +1,8 @@
 # ⚡️ nat ⚡️
 
-![banner](natbanner.png)
+![banner](assets/natbanner.png)
 
-![demo](natdemo.png)
+![demo](assets/natdemo.png)
 
 
 [What is nat?](https://github.com/willdoescode/nat#what-is-nat)
