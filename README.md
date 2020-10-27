@@ -28,24 +28,12 @@ Nats features include
 
 ## Usage
 
-### Installation macOs
+### Installation 
 
-install the latest release from
-https://github.com/willdoescode/nat/releases/
-
-then add the nat file to your path
-/usr/local/bin/
-
-to alias ls to nat
-add 
 ```bash
-alias ls='nat'
-``` 
-in your zshrc at ~/.zshrc 
+cargo install natls
+```
 
-### Installation Linux
-
-#### Linux binary also in releases compiled using docker
 
 ```bash
 apt-get install rustc cargo
@@ -81,19 +69,19 @@ yay -S nat-git
 
 in zshrc or bashrc
 ```bash
-alias ls='nat'
+alias ls='natls'
 ```
 
 ### Running
 
 ```bash
-nat <dir>
+natls <dir>
 ```
 
 #### Searching for file
 
 ```bash
-nat <dir (leave empty if in wanted dir)> -f <file>
+natls <dir (leave empty if in wanted dir)> -f <file>
 ```
 
 ### To edit the code
@@ -106,7 +94,7 @@ cd nat
 ## Uninstall steps
 
 ```bash
-rm /usr/local/bin/nat
+cargo uninstall natls
 ```
 
 ## Understanding permissions output
