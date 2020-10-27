@@ -1,9 +1,9 @@
 extern crate pretty_bytes;
 extern crate libc;
 
+use chrono::prelude::*;
 use filetime::FileTime;
 use ansi_term::Style;
-use chrono::prelude::*;
 use pretty_bytes::converter::convert;
 use std::os::unix::fs::MetadataExt;
 use std::os::unix::fs::PermissionsExt;
