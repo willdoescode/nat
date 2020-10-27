@@ -38,7 +38,7 @@ pub struct Cli {
 
     #[structopt(short = "t", long = "time", help = "Disables the file time modified output")]
     time_on: bool,
-    
+
     #[structopt(short = "s", long = "size", help = "Disables file size output")]
     size_on: bool,
 
@@ -56,21 +56,21 @@ pub struct Cli {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args = Cli::from_args();
-    let directory = &args.path;
-    let headline_on = &args.headline_on;
-    let hidden_files = &args.hidden_files;
-    let wide_mode = &args.wide_mode;
-    let time_on = &args.time_on;
-    let size_on = &args.size_on;
-    let group_on = &args.group_on;
-    let perms_on = &args.perms_on;
-    let user_on = &args.user_on;
-    let is_sorted = &args.is_sorted;
+  let args = Cli::from_args();
+  let directory = &args.path;
+  let headline_on = &args.headline_on;
+  let hidden_files = &args.hidden_files;
+  let wide_mode = &args.wide_mode;
+  let time_on = &args.time_on;
+  let size_on = &args.size_on;
+  let group_on = &args.group_on;
+  let perms_on = &args.perms_on;
+  let user_on = &args.user_on;
+  let is_sorted = &args.is_sorted;
 
-    let entries = fs::read_dir(directory)?
-      .map(|res| res.map(|e| e.path()))
-      .collect::<Result<Vec<_>, io::Error>>()?;
+  let entries = fs::read_dir(directory)?
+    .map(|res| res.map(|e| e.path()))
+    .collect::<Result<Vec<_>, io::Error>>()?;
 
     let mut size_count = 4;
     let mut group_size = 8;
@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut found = false;
 
-    draw_headlines(*headline_on);
+    draw_headlines(*headline_on, *perms_on, *size_on, *time_on, *group_on, *user_on);
 
 
     if &args.file != "" {
@@ -127,27 +127,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           dirs.push(*&e);
         } else {
 
-        if !perms_on {
-          let _ = file_perms(&e);
-        }
+          if !perms_on {
+            let _ = file_perms(&e);
+          }
 
-        if !size_on {
-          let _ = file_size(size_count, &e);
-        }
+          if !size_on {
+            let _ = file_size(size_count, &e);
+          }
 
-        if !time_on {
-          let _ = time_mod(e);
-        }
+          if !time_on {
+            let _ = time_mod(e);
+          }
 
-        if !group_on {
-          let _ = show_group_name(e);
-        }
+          if !group_on {
+            let _ = show_group_name(e);
+          }
 
-        if !user_on {
-          let _ = show_user_name(e);
-        }
+          if !user_on {
+            let _ = show_user_name(e);
+          }
 
-        let _ = show_file_name(&e, *wide_mode);
+          let _ = show_file_name(&e, *wide_mode);
         }
       }
     }
@@ -159,12 +159,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 
-pub fn draw_headlines(on: bool) {
-  if on {
-    draw_headline("permissions", 0, false);
-    draw_headline("size", 0, true);
-    draw_headline("last modified", 0, true);
-    draw_headline("user", 0, true);
+pub fn draw_headlines(headline_on: bool, perms_on: bool, size_on: bool, time_on: bool, group_on: bool, user_on: bool) {
+  if headline_on {
+    if !perms_on {
+      draw_headline("permissions", 0, false);
+    }
+    if !size_on {
+      draw_headline("size", 0, true);
+    }
+    if !time_on {
+      draw_headline("last modified", 0, true);
+    }
+    if !group_on {
+      draw_headline("group", 0, true);
+    }
+    if !user_on {
+      draw_headline("user", 0, true);
+    }
     draw_headline("name", 0, true);
     print!("\n");
   } 
@@ -290,7 +301,7 @@ pub fn single(e: &std::path::PathBuf, size_count: usize, wide_mode: bool) -> Res
   if !&args.perms_on {
     let _ = file_perms(&e);
   }
-  
+
   if !&args.size_on {
     let _ = file_size(size_count, &e);
   }
