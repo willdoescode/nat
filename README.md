@@ -34,6 +34,7 @@ Nats features include
 cargo install natls
 ```
 
+### Manual installation
 
 ```bash
 apt-get install rustc cargo
