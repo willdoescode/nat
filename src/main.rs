@@ -277,12 +277,10 @@ fn draw_line(to: usize) {
 }
 
 pub fn get_user_name(uid: uid_t) -> String {
-  get_user_by_uid(uid)
-    .unwrap()
-    .name()
-    .to_str()
-    .unwrap()
-    .to_string()
+  match get_user_by_uid(uid) {
+    Some(m) => m.name().to_str().unwrap().to_string(),
+    None => "".to_string()
+  }
 }
 
 
