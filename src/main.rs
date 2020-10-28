@@ -278,6 +278,27 @@ pub fn show_file_name(e: &&std::path::PathBuf, wide_mode: bool) -> Result<(), Bo
     } else {
       print!(" ");
     }
+  } else if e.symlink_metadata()?.file_type().is_symlink() {
+    if !colors_on {
+      print!("{}", color::Fg(color::LightMagenta));
+    }
+    print!("{} -> ", Style::new().bold().paint(e.file_name().unwrap().to_str().unwrap()));
+    if fs::read_link(e)?.is_dir() {
+      if !colors_on {
+        print!("{}", color::Fg(color::LightBlue));
+      }
+      print!("{}/", fs::read_link(e)?.file_name().unwrap().to_str().unwrap());
+    } else {
+      if !colors_on {
+        print!("{}", color::Fg(color::LightGreen));
+      } 
+      print!("{}", fs::read_link(e)?.file_name().unwrap().to_str().unwrap());
+    }
+    if !wide_mode {
+      print!("\n");
+    } else {
+      print!(" ");
+    }
   } else {
     if !colors_on {
       print!("{}", color::Fg(color::LightGreen));
