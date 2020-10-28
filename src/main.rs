@@ -14,52 +14,55 @@ use structopt::StructOpt;
 use termion::color;
 use users::{get_group_by_gid, get_user_by_uid, uid_t};
 
+/// the ls replacement you never knew you needed
 #[derive(StructOpt, Debug)]
-#[structopt(name = "nat", about = "the ls replacement you never knew you needed")]
 pub struct Cli {
-    #[structopt(parse(from_os_str), default_value = ".", help = "Give me a directory")]
+    /// Give me a directory
+    #[structopt(parse(from_os_str), default_value = ".")]
     path: std::path::PathBuf,
 
-    #[structopt(
-        default_value = "",
-        short = "f",
-        long = "file",
-        help = "File to search for"
-    )]
+    /// File to search for
+    #[structopt(short, long, default_value)]
     file: String,
 
-    #[structopt(short = "l", long = "headline", help = "Enables helper headline")]
+    /// Enables helper headline
+    #[structopt(short = "l", long = "headline")]
     headline_on: bool,
 
-    #[structopt(short = "a", long = "arehidden", help = "Shows hidden files")]
+    /// Shows hidden files
+    #[structopt(short = "a", long = "arehidden")]
     hidden_files: bool,
 
-    #[structopt(short = "w", long = "wide", help = "Enables wide mode output")]
+    /// Enables wide mode output
+    #[structopt(short, long = "wide")]
     wide_mode: bool,
 
-    #[structopt(
-        short = "t",
-        long = "time",
-        help = "Disables the file time modified output"
-    )]
+    /// Disables the file time modified output
+    #[structopt(short, long = "time")]
     time_on: bool,
 
-    #[structopt(short = "s", long = "size", help = "Disables file size output")]
+    /// Disables file size output
+    #[structopt(short, long = "size")]
     size_on: bool,
 
-    #[structopt(short = "g", long = "group", help = "Disables the file group output")]
+    /// Disables the file group output
+    #[structopt(short, long = "group")]
     group_on: bool,
 
-    #[structopt(short = "p", long = "perms", help = "Disables the permissions output")]
+    /// Disables the permissions output
+    #[structopt(short, long = "perms")]
     perms_on: bool,
 
-    #[structopt(short = "u", long = "user", help = "Disables the file user output")]
+    /// Disables the file user output
+    #[structopt(short, long = "user")]
     user_on: bool,
 
-    #[structopt(short = "n", long = "nsort", help = "Turns off sorting")]
+    /// Turns off sorting
+    #[structopt(short = "n", long = "nsort")]
     is_sorted: bool,
 
-    #[structopt(short = "c", long = "ncolors", help = "Turns off color output")]
+    /// Turns off color output
+    #[structopt(short = "c", long = "ncolors")]
     colors_on: bool,
 
     /// Specify time format https://docs.rs/chrono/*/chrono/format/strftime/index.html
