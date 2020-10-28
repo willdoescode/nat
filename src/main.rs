@@ -51,7 +51,7 @@ pub struct Cli {
     #[structopt(short = "u", long = "user", help = "Disables the file user output")]
     user_on: bool,
 
-    #[structopt(long = "nsort", help = "Turns off sorting")]
+    #[structopt(short = "n", long = "nsort", help = "Turns off sorting")]
     is_sorted: bool,
 
     #[structopt(short = "c", long = "ncolors", help = "Turns off color output")]
