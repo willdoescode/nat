@@ -22,7 +22,7 @@ pub struct Cli {
     path: std::path::PathBuf,
 
     /// File to search for
-    #[structopt(default_value, short, long)]
+    #[structopt(short, long, default_value)]
     file: String,
 
     /// Enables helper headline
