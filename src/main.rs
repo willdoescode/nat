@@ -54,6 +54,9 @@ pub struct Cli {
     #[structopt(long = "nsort", help = "Turns off sorting")]
     is_sorted: bool,
 
+    #[structopt(short = "c", long = "ncolors", help = "Turns off color output")]
+    colors_on: bool,
+
     /// Specify time format https://docs.rs/chrono/*/chrono/format/strftime/index.html
     #[structopt(long = "time-format", default_value = "%b %e %T")]
     time_format: String,
@@ -72,6 +75,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let user_on = &args.user_on;
   let is_sorted = &args.is_sorted;
   let time_format = &args.time_format;
+  let colors_on = &args.colors_on;
 
   let entries = fs::read_dir(directory)?
     .map(|res| res.map(|e| e.path()))
@@ -112,7 +116,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
       }
       if !found {
+        if !*colors_on {
         print!("{}", color::Fg(color::Red));
+        }
         println!(
           "{}",
           Style::new()
@@ -188,7 +194,9 @@ pub fn draw_headlines(headline_on: bool, perms_on: bool, size_on: bool, time_on:
 
 pub fn file_perms(e: &&std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
   let mode = fs::symlink_metadata(&e)?.permissions().mode();
-  print!("{}", color::Fg(color::White));
+  if !Cli::from_args().colors_on {
+    print!("{}", color::Fg(color::White));
+  }
   print!("{} ", perms(mode as u16));
   Ok(())
 }
@@ -197,7 +205,9 @@ pub fn file_size(size_count: usize, e: &&std::path::PathBuf) -> Result<(), Box<d
   for _ in 0..(size_count - convert(fs::symlink_metadata(&e)?.size() as f64).len()) {
     print!(" ");
   }
-  print!("{}", color::Fg(color::Green));
+  if !Cli::from_args().colors_on {
+    print!("{}", color::Fg(color::Green));
+  }
   print!(
     "{} ",
     Style::new()
@@ -211,7 +221,9 @@ pub fn time_mod(e: &std::path::PathBuf, time_format: &str) -> Result<(), Box<dyn
   if let Ok(_) = e.symlink_metadata()?.modified() {
     let mtime = FileTime::from_last_modification_time(&e.symlink_metadata().unwrap());
     let d = NaiveDateTime::from_timestamp(mtime.seconds() as i64, 0);
-    print!("{}", color::Fg(color::LightRed));
+    if !Cli::from_args().colors_on {
+      print!("{}", color::Fg(color::LightRed));
+    }
     let datetime =  d;
     print!("{} ", datetime.format(time_format));
   }
@@ -219,7 +231,9 @@ pub fn time_mod(e: &std::path::PathBuf, time_format: &str) -> Result<(), Box<dyn
 }
 
 pub fn show_group_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-  print!("{}", color::Fg(color::LightBlue));
+  if !Cli::from_args().colors_on {
+    print!("{}", color::Fg(color::LightBlue));
+  }
 
   print!(
     "{} ",
@@ -235,7 +249,9 @@ pub fn show_group_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error:
 }
 
 pub fn show_user_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-  print!("{}", color::Fg(color::LightYellow));
+  if !Cli::from_args().colors_on {
+    print!("{}", color::Fg(color::LightYellow));
+  }
   print!(
     "{} ",
     Style::new().bold().paint(
@@ -250,9 +266,14 @@ pub fn show_user_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::
 }
 
 pub fn show_file_name(e: &&std::path::PathBuf, wide_mode: bool) -> Result<(), Box<dyn std::error::Error>> {
-  print!("{}", color::Fg(color::White));
+  let colors_on = Cli::from_args().colors_on;
+  if !colors_on {
+    print!("{}", color::Fg(color::White));
+  }
   if e.symlink_metadata()?.is_dir() {
-    print!("{}", color::Fg(color::LightBlue));
+    if !colors_on {
+      print!("{}", color::Fg(color::LightBlue));
+    }
     print!("{}/", &e.file_name().unwrap().to_str().unwrap());
     if !wide_mode {
       print!("\n");
@@ -260,7 +281,9 @@ pub fn show_file_name(e: &&std::path::PathBuf, wide_mode: bool) -> Result<(), Bo
       print!(" ");
     }
   } else {
-    print!("{}", color::Fg(color::LightGreen));
+    if !colors_on {
+      print!("{}", color::Fg(color::LightGreen));
+    }
     print!(
       "{}",
       Style::new()
@@ -330,7 +353,11 @@ pub fn perms(mode: u16) -> String {
   let user = triplet(mode, S_IRUSR as u16, S_IWUSR as u16, S_IXUSR as u16);
   let group = triplet(mode, S_IRGRP as u16, S_IWGRP as u16, S_IXGRP as u16);
   let other = triplet(mode, S_IROTH as u16, S_IWOTH as u16, S_IXOTH as u16);
-  [format!("{}{}", color::Fg(color::Blue), user), format!("{}{}", color::Fg(color::LightRed), group), format!("{}{}", color::Fg(color::Yellow), other)].join("")
+  if !Cli::from_args().colors_on {
+    [format!("{}{}", color::Fg(color::Blue), user), format!("{}{}", color::Fg(color::LightRed), group), format!("{}{}", color::Fg(color::Yellow), other)].join("")
+  } else {
+    [user, group, other].join("")
+  }
 }
 
 pub fn triplet(mode: u16, read: u16, write: u16, execute: u16) -> String {
