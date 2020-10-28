@@ -238,11 +238,10 @@ pub fn show_group_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error:
   print!(
     "{} ",
     Style::new().bold().paint(
-      get_group_by_gid(fs::symlink_metadata(e)?.gid())
-      .unwrap()
-      .name()
-      .to_str()
-      .unwrap()
+      match get_group_by_gid(fs::symlink_metadata(e)?.gid()).as_ref() {
+        Some(n) => n.name().to_str().unwrap(),
+        None => ""
+  }
     )
   );
   Ok(())
@@ -255,11 +254,10 @@ pub fn show_user_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::
   print!(
     "{} ",
     Style::new().bold().paint(
-      get_user_by_uid(fs::symlink_metadata(e)?.uid())
-      .unwrap()
-      .name()
-      .to_str()
-      .unwrap()
+      match get_user_by_uid(fs::symlink_metadata(e)?.uid()).as_ref() {
+        Some(n) => n.name().to_str().unwrap(),
+        None => ""
+      }
     )
   );
   Ok(())
