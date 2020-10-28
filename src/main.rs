@@ -283,16 +283,33 @@ pub fn show_file_name(e: &&std::path::PathBuf, wide_mode: bool) -> Result<(), Bo
       print!("{}", color::Fg(color::LightMagenta));
     }
     print!("{} -> ", Style::new().bold().paint(e.file_name().unwrap().to_str().unwrap()));
-    if fs::read_link(e)?.is_dir() {
-      if !colors_on {
-        print!("{}", color::Fg(color::LightBlue));
+    match fs::canonicalize(fs::read_link(e)?) {
+      Ok(_n) => {
+        if fs::read_link(e)?.is_dir() {
+          if !colors_on {
+            print!("{}", color::Fg(color::LightBlue));
+            print!("{}/", fs::canonicalize(fs::read_link(e)?).unwrap().to_str().unwrap())
+          }
+        } else {
+          if !colors_on {
+            print!("{}", color::Fg(color::LightGreen));
+            print!("{}", fs::canonicalize(fs::read_link(e)?).unwrap().to_str().unwrap())
+          }
+        }
+      },
+      Err(_err) => {   
+        if fs::read_link(e)?.is_dir() {
+          if !colors_on {
+            print!("{}", color::Fg(color::LightBlue));
+            print!("{}/", fs::read_link(e)?.file_name().unwrap().to_str().unwrap())
+          }
+        } else {
+          if !colors_on {
+            print!("{}", color::Fg(color::LightGreen));
+            print!("{}", fs::read_link(e)?.file_name().unwrap().to_str().unwrap())
+          }
+        }
       }
-      print!("{}/", fs::read_link(e)?.file_name().unwrap().to_str().unwrap());
-    } else {
-      if !colors_on {
-        print!("{}", color::Fg(color::LightGreen));
-      } 
-      print!("{}", fs::read_link(e)?.file_name().unwrap().to_str().unwrap());
     }
     if !wide_mode {
       print!("\n");
