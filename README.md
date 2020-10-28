@@ -34,7 +34,6 @@ Nats features include
 ## Highlights
 
 - A rather large german tech blog wrote an [article](https://www.heise.de/news/In-Rust-geschrieben-und-uebersichtlicher-nat-will-ls-ersetzen-4937429.html) about nat
-
 ## Usage
 
 ### Installation 
@@ -76,11 +75,6 @@ and add this line to your `$HOME/.bashrc`
 
 ```bash
 export PATH=$PATH:$HOME/.cargo/bin
-```
-
-### On Arch Linux
-```bash
-yay -S nat-git
 ```
 
 #### Using nat with ls
