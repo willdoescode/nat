@@ -77,7 +77,13 @@ and add this line to your `$HOME/.bashrc`
 export PATH=$PATH:$HOME/.cargo/bin
 ```
 
-#### Using nat with ls
+### Updating nat
+```bash
+cargo install natls
+```
+if there is a new version available cargo will install it
+
+### Using nat with ls
 
 in zshrc or bashrc
 ```bash
