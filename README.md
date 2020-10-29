@@ -99,7 +99,7 @@ natls <dir>
 #### Searching for file
 
 ```bash
-natls <dir (leave empty if in wanted dir)> -f <file>
+natls <file>
 ```
 
 ### To edit the code

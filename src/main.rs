@@ -21,10 +21,6 @@ pub struct Cli {
   #[structopt(parse(from_os_str), default_value = ".")]
   path: std::path::PathBuf,
 
-  /// File to search for
-  #[structopt(short, long, default_value)]
-  file: String,
-
   /// Enables helper headline
   #[structopt(short = "l", long = "headline")]
   headline_on: bool,
@@ -85,26 +81,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let time_format = &args.time_format;
   let colors_on = &args.colors_on;
 
-  let entries = fs::read_dir(directory)?
-    .map(|res| res.map(|e| e.path()))
-    .collect::<Result<Vec<_>, io::Error>>()?;
-
-  let mut size_count = 4;
-  let mut group_size = 8;
-  for s in &entries {
-    if convert(fs::symlink_metadata(&s)?.size() as f64).len() > size_count {
-      size_count = convert(fs::symlink_metadata(&s)?.size() as f64).len();
-    };
-
-    let metadata_uid = fs::symlink_metadata(&s)?.uid();
-    let user_name_len = get_user_name(metadata_uid).len();
-    if user_name_len > group_size {
-      group_size = user_name_len;
-    }
-  }
-
-  let mut found = false;
-
   draw_headlines(
     *headline_on,
     *perms_on,
@@ -114,70 +90,105 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     *user_on,
   );
 
-  if &args.file != "" {
-    for e in &entries {
-      if e
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_lowercase()
-        .contains(&args.file.to_lowercase())
-      {
-        let _ = single(e, size_count, *wide_mode, time_format);
-        found = true;
+  let mut singly_found = false;
+  if !std::path::Path::new(directory).exists() {
+    let entries = fs::read_dir(".")?
+      .map(|res| res.map(|e| e.path()))
+      .collect::<Result<Vec<_>, io::Error>>()?;
+      
+      let mut size_count = 4;
+      for s in &entries { 
+        if convert(fs::symlink_metadata(&s)?.size() as f64).len() > size_count {
+          size_count = convert(fs::symlink_metadata(&s)?.size() as f64).len();
+        };
       }
-    }
-    if !found {
-      if !*colors_on {
-        print!("{}", color::Fg(color::Red));
-      }
-      println!(
-        "{}",
-        Style::new()
-          .bold()
-          .paint(format!("{} could not be found", &args.file))
-      );
-    }
+        for e in &entries {
+          if e
+            .file_name()
+              .unwrap()
+              .to_str()
+              .unwrap()
+              .to_lowercase()
+              .contains(&args.path.display().to_string().to_lowercase())
+          {
+            let _ = single(e, size_count, *wide_mode, time_format);
+            singly_found = true;
+          }
+        }
+        if !singly_found {
+          if !*colors_on {
+            print!("{}", color::Fg(color::Red));
+          }
+          println!(
+            "{}",
+            Style::new()
+            .bold()
+            .paint(format!("{} could not be found", &args.path.display().to_string()))
+          );
+        }
+        std::process::exit(1);
+  }
+
+  if !directory.symlink_metadata()?.is_dir() {
+    let _ = single(&directory, 4 as usize, *wide_mode, time_format);
     std::process::exit(0);
   }
 
-  let mut dirs: Vec<&std::path::PathBuf> = vec![];
 
-  for e in &entries {
-    if !&e.file_name().unwrap().to_str().unwrap().starts_with(".") || *hidden_files {
-      if *&e.is_file() && !*is_sorted {
-        dirs.push(*&e);
-      } else {
-        if !perms_on {
-          let _ = file_perms(&e);
-        }
+  let entries = fs::read_dir(directory)?
+    .map(|res| res.map(|e| e.path()))
+    .collect::<Result<Vec<_>, io::Error>>()?;
 
-        if !size_on {
-          let _ = file_size(size_count, &e);
-        }
+    let mut size_count = 4;
+    let mut group_size = 8;
+    for s in &entries {
+      if convert(fs::symlink_metadata(&s)?.size() as f64).len() > size_count {
+        size_count = convert(fs::symlink_metadata(&s)?.size() as f64).len();
+      };
 
-        if !time_on {
-          let _ = time_mod(e, time_format);
-        }
-
-        if !group_on {
-          let _ = show_group_name(e);
-        }
-
-        if !user_on {
-          let _ = show_user_name(e);
-        }
-
-        let _ = show_file_name(&e, *wide_mode);
+      let metadata_uid = fs::symlink_metadata(&s)?.uid();
+      let user_name_len = get_user_name(metadata_uid).len();
+      if user_name_len > group_size {
+        group_size = user_name_len;
       }
     }
-  }
-  for e in &dirs {
-    let _ = single(e, size_count, *wide_mode, time_format);
-  }
 
-  Ok(())
+    let mut dirs: Vec<&std::path::PathBuf> = vec![];
+
+    for e in &entries {
+      if !&e.file_name().unwrap().to_str().unwrap().starts_with(".") || *hidden_files {
+        if *&e.is_file() && !*is_sorted {
+          dirs.push(*&e);
+        } else {
+          if !perms_on {
+            let _ = file_perms(&e);
+          }
+
+          if !size_on {
+            let _ = file_size(size_count, &e);
+          }
+
+          if !time_on {
+            let _ = time_mod(e, time_format);
+          }
+
+          if !group_on {
+            let _ = show_group_name(e);
+          }
+
+          if !user_on {
+            let _ = show_user_name(e);
+          }
+
+          let _ = show_file_name(&e, *wide_mode);
+        }
+      }
+    }
+    for e in &dirs {
+      let _ = single(e, size_count, *wide_mode, time_format);
+    }
+
+    Ok(())
 }
 
 pub fn draw_headlines(
@@ -222,8 +233,10 @@ pub fn file_size(
   size_count: usize,
   e: &&std::path::PathBuf,
 ) -> Result<(), Box<dyn std::error::Error>> {
-  for _ in 0..(size_count - convert(fs::symlink_metadata(&e)?.size() as f64).len()) {
-    print!(" ");
+  if size_count > 4 {
+    for _ in 0..(size_count - convert(fs::symlink_metadata(&e)?.size() as f64).len()) {
+      print!(" ");
+    }
   }
   if !Cli::from_args().colors_on {
     print!("{}", color::Fg(color::Green));
@@ -231,8 +244,8 @@ pub fn file_size(
   print!(
     "{} ",
     Style::new()
-      .bold()
-      .paint(convert(fs::symlink_metadata(&e)?.size() as f64))
+    .bold()
+    .paint(convert(fs::symlink_metadata(&e)?.size() as f64))
   );
   Ok(())
 }
@@ -264,7 +277,7 @@ pub fn show_group_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error:
       match get_group_by_gid(fs::symlink_metadata(e)?.gid()).as_ref() {
         Some(n) => n.name().to_str().unwrap(),
         None => "",
-      }
+  }
     )
   );
   Ok(())
@@ -280,7 +293,7 @@ pub fn show_user_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::
       match get_user_by_uid(fs::symlink_metadata(e)?.uid()).as_ref() {
         Some(n) => n.name().to_str().unwrap(),
         None => "",
-      }
+  }
     )
   );
   Ok(())
@@ -311,8 +324,8 @@ pub fn show_file_name(
     print!(
       "{} -> ",
       Style::new()
-        .bold()
-        .paint(e.file_name().unwrap().to_str().unwrap())
+      .bold()
+      .paint(e.file_name().unwrap().to_str().unwrap())
     );
     match fs::canonicalize(fs::read_link(e)?) {
       Ok(_n) => {
@@ -322,9 +335,9 @@ pub fn show_file_name(
             print!(
               "{}/",
               fs::canonicalize(fs::read_link(e)?)
-                .unwrap()
-                .to_str()
-                .unwrap()
+              .unwrap()
+              .to_str()
+              .unwrap()
             )
           }
         } else {
@@ -333,9 +346,9 @@ pub fn show_file_name(
             print!(
               "{}",
               fs::canonicalize(fs::read_link(e)?)
-                .unwrap()
-                .to_str()
-                .unwrap()
+              .unwrap()
+              .to_str()
+              .unwrap()
             )
           }
         }
@@ -372,8 +385,8 @@ pub fn show_file_name(
     print!(
       "{}",
       Style::new()
-        .bold()
-        .paint(e.file_name().unwrap().to_str().unwrap())
+      .bold()
+      .paint(e.file_name().unwrap().to_str().unwrap())
     );
     if !wide_mode {
       print!("\n");
@@ -448,7 +461,7 @@ pub fn perms(mode: u16) -> String {
       format!("{}{}", color::Fg(color::LightRed), group),
       format!("{}{}", color::Fg(color::Yellow), other),
     ]
-    .join("")
+      .join("")
   } else {
     [user, group, other].join("")
   }
