@@ -83,9 +83,10 @@ fn output() -> Result<(), Box<dyn std::error::Error>> {
 
   let mut singly_found = false;
   if !std::path::Path::new(directory).exists() {
-    let entries = fs::read_dir(".")?
+    let mut entries = fs::read_dir(".")?
       .map(|res| res.map(|e| e.path()))
       .collect::<Result<Vec<_>, io::Error>>()?;
+    entries.sort_by(|a, b| FileTime::from_last_modification_time(&fs::symlink_metadata(&a).unwrap()).seconds().cmp(&FileTime::from_last_modification_time(&fs::symlink_metadata(&b).unwrap()).seconds())); 
 
     let mut size_count = 4;
     for s in &entries {
@@ -126,9 +127,11 @@ fn output() -> Result<(), Box<dyn std::error::Error>> {
     std::process::exit(0);
   }
 
-  let entries = fs::read_dir(directory)?
+  let mut entries = fs::read_dir(directory)?
     .map(|res| res.map(|e| e.path()))
     .collect::<Result<Vec<_>, io::Error>>()?;
+
+  entries.sort_by(|a, b| FileTime::from_last_modification_time(&fs::symlink_metadata(&a).unwrap()).seconds().cmp(&FileTime::from_last_modification_time(&fs::symlink_metadata(&b).unwrap()).seconds())); 
 
   let mut size_count = 4;
   let mut group_size = 8;
@@ -175,7 +178,8 @@ fn output() -> Result<(), Box<dyn std::error::Error>> {
       }
     }
   }
-  for e in &dirs {
+
+  for e in dirs {
     let _ = single(e, size_count, *wide_mode, time_format);
   }
 
