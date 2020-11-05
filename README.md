@@ -145,3 +145,7 @@ If all groups have read write and execute the output would look like
 ```
 rwxrwxrwx
 ```
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/b4b4r07/enhancd.svg)](https://starchart.cc/b4b4r07/enhancd)
