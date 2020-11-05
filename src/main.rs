@@ -250,12 +250,12 @@ pub fn time_mod(
   time_format: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
   if e.symlink_metadata()?.modified().is_ok() {
-    let mtime = FileTime::from_last_modification_time(&e.symlink_metadata().unwrap());
-    let d = NaiveDateTime::from_timestamp(mtime.seconds() as i64, 0);
+    let timestamp = fs::symlink_metadata(e)?;
+    let naive = NaiveDateTime::from_timestamp(FileTime::from_last_modification_time(&timestamp).seconds() as i64,  0);
+    let datetime: DateTime<Local> = DateTime::from_utc(naive, *Local::now().offset());
     if !Cli::from_args().colors_on {
       print!("{}", color::Fg(color::LightRed));
     }
-    let datetime = d;
     print!("{} ", datetime.format(time_format));
   }
   Ok(())
