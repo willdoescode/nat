@@ -1,10 +1,10 @@
 #![allow(clippy::collapsible_if)]
 extern crate libc;
 extern crate pretty_bytes;
-
 use ansi_term::Style;
 use chrono::prelude::*;
 use filetime::FileTime;
+use humansize::{file_size_opts as options, FileSize};
 use libc::{S_IRGRP, S_IROTH, S_IRUSR, S_IWGRP, S_IWOTH, S_IWUSR, S_IXGRP, S_IXOTH, S_IXUSR};
 use pretty_bytes::converter::convert;
 use std::{
@@ -229,7 +229,12 @@ pub fn file_size(
   e: &&std::path::PathBuf,
 ) -> Result<(), Box<dyn std::error::Error>> {
   if size_count > 4 {
-    for _ in 0..(size_count - convert(fs::symlink_metadata(&e)?.size() as f64).len()) {
+    for _ in 0..(size_count
+      - (fs::symlink_metadata(&e)?.size())
+        .file_size(options::CONVENTIONAL)
+        .unwrap()
+        .len())
+    {
       print!(" ");
     }
   }
@@ -238,9 +243,11 @@ pub fn file_size(
   }
   print!(
     "{} ",
-    Style::new()
-      .bold()
-      .paint(convert(fs::symlink_metadata(&e)?.size() as f64))
+    Style::new().bold().paint(
+      (fs::symlink_metadata(&e)?.size())
+        .file_size(options::CONVENTIONAL)
+        .unwrap()
+    )
   );
   Ok(())
 }

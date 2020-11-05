@@ -1,6 +1,6 @@
 [package]
 name = "natls"
-version = "1.2.8"
+version = "1.2.9"
 authors = ["Will Lane <williamlane923@gmail.com>"]
 description = "nat - the 'ls' replacement you never knew you needed"
 license = "MIT"
@@ -16,6 +16,7 @@ ansi_term = "0.12"
 structopt = "0.3"
 libc = "0.2"
 filetime = "0.1"
+humansize = "1.1.0"
 
 [profile.dev]
 opt-level = 0

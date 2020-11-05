@@ -114,6 +114,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "humansize"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6cab2627acfc432780848602f3f558f7e9dd427352224b0d9324025796d2a5e"
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -136,11 +142,12 @@ dependencies = [
 
 [[package]]
 name = "natls"
-version = "1.2.8"
+version = "1.2.9"
 dependencies = [
  "ansi_term 0.12.1",
  "chrono",
  "filetime",
+ "humansize",
  "libc",
  "pretty-bytes",
  "structopt",
