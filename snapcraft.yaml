@@ -1,0 +1,27 @@
+name: natls
+version: '1.2.10'
+summary: the 'ls' replacement you never knew you needed
+description: |
+  Nat is a complete replacement for the 'ls' command
+  Nats features include
+  * Showing file permissions
+  * Showing file size
+  * Showing the date that the file was modified last
+  * Showing the user that the file belongs to
+  * Showing the group that the file belongs to
+  * An easy to use file search
+  * A splash of color to distinguish between files and folders
+base: core20
+
+parts:
+  natls:
+    plugin: rust
+    source: https://github.com/willdoescode/nat.git
+    build-packages:
+      - gcc-multilib
+
+apps:
+  natls:
+    command: bin/natls
+    plugs:
+      - home
