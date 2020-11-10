@@ -16,7 +16,7 @@ base: core20
 parts:
   natls:
     plugin: rust
-    source: https://github.com/willdoescode/nat.git
+    source: .
     build-packages:
       - gcc-multilib
 
