@@ -80,6 +80,9 @@ fn output() -> Result<(), Box<dyn std::error::Error>> {
   let is_sorted = &args.is_sorted;
   let time_format = &args.time_format;
   let colors_on = &args.colors_on;
+  let headline_on = &args.headline_on;
+
+  draw_headlines(*headline_on, *perms_on, *size_on, *time_on, *group_on, *user_on);
 
   let mut singly_found = false;
   if !std::path::Path::new(directory).exists() {
