@@ -136,8 +136,9 @@ fn output() -> Result<(), Box<dyn std::error::Error>> {
           &args.path.display().to_string()
         ))
       );
-    }
     std::process::exit(1);
+    }
+    std::process::exit(0);
   }
 
   if !directory.symlink_metadata()?.is_dir() {
