@@ -65,6 +65,14 @@ pub struct Cli {
   /// Specify time format https://docs.rs/chrono/*/chrono/format/strftime/index.html
   #[structopt(long = "time-format", default_value = "%b %e %T")]
   time_format: String,
+
+  /// Turns off sorting by name (on by default)
+  #[structopt(long="no-name")]
+  by_name: bool,
+
+  /// Sorts by files by date modified
+  #[structopt(short="m")]
+  by_modified: bool,
 }
 
 fn output() -> Result<(), Box<dyn std::error::Error>> {
@@ -81,6 +89,8 @@ fn output() -> Result<(), Box<dyn std::error::Error>> {
   let time_format = &args.time_format;
   let colors_on = &args.colors_on;
   let headline_on = &args.headline_on;
+  let by_name = &args.by_name;
+  let by_modified = &args.by_modified;
 
   draw_headlines(*headline_on, *perms_on, *size_on, *time_on, *group_on, *user_on);
 
@@ -89,7 +99,12 @@ fn output() -> Result<(), Box<dyn std::error::Error>> {
     let mut entries = fs::read_dir(".")?
       .map(|res| res.map(|e| e.path()))
       .collect::<Result<Vec<_>, io::Error>>()?;
-    entries.sort_by(|a, b| FileTime::from_last_modification_time(&fs::symlink_metadata(&a).unwrap()).seconds().cmp(&FileTime::from_last_modification_time(&fs::symlink_metadata(&b).unwrap()).seconds())); 
+    if *by_modified {
+      entries.sort_by(|a, b| FileTime::from_last_modification_time(&fs::symlink_metadata(&a).unwrap()).seconds().cmp(&FileTime::from_last_modification_time(&fs::symlink_metadata(&b).unwrap()).seconds())); 
+    }
+    if !*by_name {
+      entries.sort_by(|a, b| a.file_name().unwrap().to_str().unwrap().to_lowercase().cmp(&b.file_name().unwrap().to_str().unwrap().to_lowercase()));
+    }
 
     let mut size_count = 4;
     for s in &entries {
@@ -134,8 +149,12 @@ fn output() -> Result<(), Box<dyn std::error::Error>> {
     .map(|res| res.map(|e| e.path()))
     .collect::<Result<Vec<_>, io::Error>>()?;
 
-  entries.sort_by(|a, b| FileTime::from_last_modification_time(&fs::symlink_metadata(&a).unwrap()).seconds().cmp(&FileTime::from_last_modification_time(&fs::symlink_metadata(&b).unwrap()).seconds())); 
-
+    if *by_modified {
+      entries.sort_by(|a, b| FileTime::from_last_modification_time(&fs::symlink_metadata(&a).unwrap()).seconds().cmp(&FileTime::from_last_modification_time(&fs::symlink_metadata(&b).unwrap()).seconds())); 
+    }
+    if !*by_name {
+      entries.sort_by(|a, b| a.file_name().unwrap().to_str().unwrap().to_lowercase().cmp(&b.file_name().unwrap().to_str().unwrap().to_lowercase()));
+    }
   let mut size_count = 4;
   let mut group_size = 8;
   for s in &entries {
