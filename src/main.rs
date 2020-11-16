@@ -63,7 +63,7 @@ pub struct Cli {
   colors_on: bool,
 
   /// Specify time format https://docs.rs/chrono/*/chrono/format/strftime/index.html
-  #[structopt(long = "time-format", default_value = "%b %e %T")]
+  #[structopt(long = "time-format", default_value = "%e %b %T")]
   time_format: String,
 
   /// Turns off sorting by name (on by default)
@@ -159,8 +159,8 @@ fn output() -> Result<(), Box<dyn std::error::Error>> {
   let mut size_count = 4;
   let mut group_size = 8;
   for s in &entries {
-    if convert(fs::symlink_metadata(&s)?.size() as f64).len() > size_count {
-      size_count = convert(fs::symlink_metadata(&s)?.size() as f64).len();
+  if (fs::symlink_metadata(&s)?.size()).file_size(options::CONVENTIONAL).unwrap().len() > size_count {
+      size_count = (fs::symlink_metadata(&s)?.size()).file_size(options::CONVENTIONAL).unwrap().len();
     };
 
     let metadata_uid = fs::symlink_metadata(&s)?.uid();
@@ -255,12 +255,8 @@ pub fn file_size(
   size_count: usize,
   e: &&std::path::PathBuf,
 ) -> Result<(), Box<dyn std::error::Error>> {
-  if size_count > 4 {
-    for _ in 0..(size_count
-      - (fs::symlink_metadata(&e)?.size())
-        .file_size(options::CONVENTIONAL)
-        .unwrap()
-        .len())
+  if (fs::symlink_metadata(&e)?.size()).file_size(options::CONVENTIONAL).unwrap().len() < size_count {
+    for _ in 0..(size_count - (fs::symlink_metadata(&e)?.size()).file_size(options::CONVENTIONAL).unwrap().len())
     {
       print!(" ");
     }
@@ -289,6 +285,14 @@ pub fn time_mod(
       FileTime::from_last_modification_time(&timestamp).seconds() as i64,
       0,
     );
+    //let now = Utc::now();
+    //let back = NaiveDateTime::from_timestamp(FileTime::from_last_modification_time(&timestamp).seconds() as i64, 0);
+    //let d: DateTime<Utc> = DateTime::from_utc(back, Utc);
+    //let rel = now.signed_duration_since(d).num_seconds();
+    //println!("{}", chrono::Duration::seconds(rel).num_seconds());
+    //println!("{}", chrono::Duration::seconds(rel).num_hours());
+    //println!("{}", chrono::Duration::seconds(rel).num_days());
+    //println!("{}", chrono::Duration::seconds(rel).num_weeks());
     let datetime: DateTime<Local> = DateTime::from_utc(naive, *Local::now().offset());
     if !Cli::from_args().colors_on {
       print!("{}", color::Fg(color::LightRed));
