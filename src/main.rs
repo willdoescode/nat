@@ -115,15 +115,15 @@ fn output() -> Result<(), Box<dyn std::error::Error>> {
     for e in &entries {
       if e
         .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_lowercase()
-        .contains(&args.path.display().to_string().to_lowercase())
-      {
-        let _ = single(e, size_count, *wide_mode, time_format);
-        singly_found = true;
-      }
+          .unwrap()
+          .to_str()
+          .unwrap()
+          .to_lowercase()
+          .contains(&args.path.display().to_string().to_lowercase())
+          {
+            let _ = single(e, size_count, *wide_mode, time_format);
+            singly_found = true;
+          }
     }
     if !singly_found {
       if !*colors_on {
@@ -132,11 +132,11 @@ fn output() -> Result<(), Box<dyn std::error::Error>> {
       println!(
         "{}",
         Style::new().bold().paint(format!(
-          "{} could not be found",
-          &args.path.display().to_string()
+            "{} could not be found",
+            &args.path.display().to_string()
         ))
       );
-    std::process::exit(1);
+      std::process::exit(1);
     }
     std::process::exit(0);
   }
@@ -150,16 +150,16 @@ fn output() -> Result<(), Box<dyn std::error::Error>> {
     .map(|res| res.map(|e| e.path()))
     .collect::<Result<Vec<_>, io::Error>>()?;
 
-    if *by_modified {
-      entries.sort_by(|a, b| FileTime::from_last_modification_time(&fs::symlink_metadata(&a).unwrap()).seconds().cmp(&FileTime::from_last_modification_time(&fs::symlink_metadata(&b).unwrap()).seconds())); 
-    }
-    if !*by_name {
-      entries.sort_by(|a, b| a.file_name().unwrap().to_str().unwrap().to_lowercase().cmp(&b.file_name().unwrap().to_str().unwrap().to_lowercase()));
-    }
+  if *by_modified {
+    entries.sort_by(|a, b| FileTime::from_last_modification_time(&fs::symlink_metadata(&a).unwrap()).seconds().cmp(&FileTime::from_last_modification_time(&fs::symlink_metadata(&b).unwrap()).seconds())); 
+  }
+  if !*by_name {
+    entries.sort_by(|a, b| a.file_name().unwrap().to_str().unwrap().to_lowercase().cmp(&b.file_name().unwrap().to_str().unwrap().to_lowercase()));
+  }
   let mut size_count = 4;
   let mut group_size = 8;
   for s in &entries {
-  if (fs::symlink_metadata(&s)?.size()).file_size(options::CONVENTIONAL).unwrap().len() > size_count {
+    if (fs::symlink_metadata(&s)?.size()).file_size(options::CONVENTIONAL).unwrap().len() > size_count {
       size_count = (fs::symlink_metadata(&s)?.size()).file_size(options::CONVENTIONAL).unwrap().len();
     };
 
@@ -220,7 +220,7 @@ pub fn draw_headlines(
   time_on: bool,
   group_on: bool,
   user_on: bool,
-) {
+  ) {
   if headline_on {
     if !perms_on {
       draw_headline("permissions", 0, false);
@@ -254,7 +254,7 @@ pub fn file_perms(e: &&std::path::PathBuf) -> Result<(), Box<dyn std::error::Err
 pub fn file_size(
   size_count: usize,
   e: &&std::path::PathBuf,
-) -> Result<(), Box<dyn std::error::Error>> {
+  ) -> Result<(), Box<dyn std::error::Error>> {
   if (fs::symlink_metadata(&e)?.size()).file_size(options::CONVENTIONAL).unwrap().len() < size_count {
     for _ in 0..(size_count - (fs::symlink_metadata(&e)?.size()).file_size(options::CONVENTIONAL).unwrap().len())
     {
@@ -268,8 +268,8 @@ pub fn file_size(
     "{} ",
     Style::new().bold().paint(
       (fs::symlink_metadata(&e)?.size())
-        .file_size(options::CONVENTIONAL)
-        .unwrap()
+      .file_size(options::CONVENTIONAL)
+      .unwrap()
     )
   );
   Ok(())
@@ -278,21 +278,46 @@ pub fn file_size(
 pub fn time_mod(
   e: &std::path::PathBuf,
   time_format: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+  ) -> Result<(), Box<dyn std::error::Error>> {
   if e.symlink_metadata()?.modified().is_ok() {
     let timestamp = fs::symlink_metadata(e)?;
     let naive = NaiveDateTime::from_timestamp(
       FileTime::from_last_modification_time(&timestamp).seconds() as i64,
       0,
-    );
+      );
     //let now = Utc::now();
     //let back = NaiveDateTime::from_timestamp(FileTime::from_last_modification_time(&timestamp).seconds() as i64, 0);
     //let d: DateTime<Utc> = DateTime::from_utc(back, Utc);
-    //let rel = now.signed_duration_since(d).num_seconds();
-    //println!("{}", chrono::Duration::seconds(rel).num_seconds());
-    //println!("{}", chrono::Duration::seconds(rel).num_hours());
-    //println!("{}", chrono::Duration::seconds(rel).num_days());
-    //println!("{}", chrono::Duration::seconds(rel).num_weeks());
+    //let rel = chrono::Duration::seconds(now.signed_duration_since(d).num_seconds());
+    //match rel.num_seconds() > 60 {
+      //true => {
+        //match rel.num_minutes() > 60 {
+          //true => {
+            //match rel.num_hours() > 24 {
+              //true => {
+                //match rel.num_days() > 7 {
+                  //true => {
+                    //print!("{} weeks", rel.num_weeks());
+                  //}
+                  //false => {
+                    //print!("{} days", rel.num_days());
+                  //}
+                //}
+              //}
+              //false => {
+                //print!("{} hours", rel.num_hours());
+              //}
+            //}
+          //}
+          //false => {
+            //print!("{} min", rel.num_minutes());
+          //}
+        //}
+      //}
+      //false => {
+        //print!("{} secs", rel.num_seconds());
+      //}
+    //}
     let datetime: DateTime<Local> = DateTime::from_utc(naive, *Local::now().offset());
     if !Cli::from_args().colors_on {
       print!("{}", color::Fg(color::LightRed));
@@ -338,7 +363,7 @@ pub fn show_user_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::
 pub fn show_file_name(
   e: &&std::path::PathBuf,
   wide_mode: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+  ) -> Result<(), Box<dyn std::error::Error>> {
   let colors_on = Cli::from_args().colors_on;
   if !colors_on {
     print!("{}", color::Fg(color::White));
@@ -360,8 +385,8 @@ pub fn show_file_name(
     print!(
       "{} -> ",
       Style::new()
-        .bold()
-        .paint(e.file_name().unwrap().to_str().unwrap())
+      .bold()
+      .paint(e.file_name().unwrap().to_str().unwrap())
     );
     match fs::canonicalize(fs::read_link(e)?) {
       Ok(_n) => {
@@ -371,9 +396,9 @@ pub fn show_file_name(
             print!(
               "{}/",
               fs::canonicalize(fs::read_link(e)?)
-                .unwrap()
-                .to_str()
-                .unwrap()
+              .unwrap()
+              .to_str()
+              .unwrap()
             )
           }
         } else {
@@ -382,9 +407,9 @@ pub fn show_file_name(
             print!(
               "{}",
               fs::canonicalize(fs::read_link(e)?)
-                .unwrap()
-                .to_str()
-                .unwrap()
+              .unwrap()
+              .to_str()
+              .unwrap()
             )
           }
         }
@@ -421,8 +446,8 @@ pub fn show_file_name(
     print!(
       "{}",
       Style::new()
-        .bold()
-        .paint(e.file_name().unwrap().to_str().unwrap())
+      .bold()
+      .paint(e.file_name().unwrap().to_str().unwrap())
     );
     if !wide_mode {
       println!();
@@ -461,7 +486,7 @@ pub fn single(
   size_count: usize,
   wide_mode: bool,
   time_format: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+  ) -> Result<(), Box<dyn std::error::Error>> {
   let args = Cli::from_args();
 
   if !&args.perms_on {
@@ -497,7 +522,7 @@ pub fn perms(mode: u16) -> String {
       format!("{}{}", color::Fg(color::LightRed), group),
       format!("{}{}", color::Fg(color::Yellow), other),
     ]
-    .join("")
+      .join("")
   } else {
     [user, group, other].join("")
   }
