@@ -29,6 +29,10 @@ Nats features include
 
 
 ## Join the nat [discord server](https://discord.gg/2Fn8veP)
+## Beta test the natls proof of concept re-write
+```bash
+cargo install nat-poc
+```
 
 
 ## Highlights
