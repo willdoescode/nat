@@ -344,7 +344,7 @@ impl Directory {
     let mut gs = 0;
     let mut us = 0;
     let mut ss = 0;
-    for p in self.paths.clone() {
+    for p in self.paths.iter() {
       if p.group.len() > gs {
         gs = p.group.len()
       }
@@ -356,28 +356,25 @@ impl Directory {
       }
     }
 
-    for p in 0..self.paths.clone().len() {
-      let ghold = &self.paths.clone()[p].group;
-      let uhold = &self.paths.clone()[p].user;
-      let shold = &self.paths.clone()[p].size;
-      let gspace = gs - ghold.len();
-      let uspace = us - uhold.len();
-      let sspace = ss - shold.len();
+    for p in 0..self.paths.iter().len() {
+      let ghold = self.paths[p].group.clone();
+      let uhold = self.paths[p].user.clone();
+      let shold = self.paths[p].size.clone();
       let mut gwidth = String::from("");
-      for _ in 0..gspace {
+      for _ in 0..(gs - ghold.len()) {
         gwidth.push(' ')
       }
       let mut uwidth = String::from("");
-      for _ in 0..uspace {
+      for _ in 0..(us - uhold.len()) {
         uwidth.push(' ')
       }
       let mut swidth = String::from("");
-      for _ in 0..sspace {
+      for _ in 0..(ss - shold.len()) {
         swidth.push(' ')
       }
       self.paths[p].group = format!("{}{}", ghold, gwidth);
-      self.paths[p].user = format!("{}{}", uhold, uwidth);
-      self.paths[p].size = format!("{}{}", swidth, shold);
+      self.paths[p].user =  format!("{}{}", uhold, uwidth);
+      self.paths[p].size =  format!("{}{}", swidth, shold);
     }
   }
 
