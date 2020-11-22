@@ -474,7 +474,7 @@ impl std::fmt::Display for Directory {
     Ok(for i in self.paths.iter() {
       match input::Cli::from_args().long {
         true => write!(f, "{:?}", i)?,
-        _ => write!(f, "{} ", i)?,
+        _ =>    write!(f, "{} ", i)?,
       }
     })
   }
