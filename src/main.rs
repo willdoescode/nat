@@ -45,27 +45,13 @@ enum PathType {
 impl PathType {
   fn new(file: &std::path::PathBuf) -> Result<Vec<Self>, Box<dyn std::error::Error>> {
     let mut return_val = Vec::new();
-    if file.symlink_metadata()?.is_dir() {
-      return_val.push(Self::Dir)
-    }
-    if file.symlink_metadata()?.file_type().is_symlink() {
-      return_val.push(Self::Symlink)
-    }
-    if file.symlink_metadata()?.file_type().is_fifo() {
-      return_val.push(Self::Pipe)
-    }
-    if file.symlink_metadata()?.file_type().is_char_device() {
-      return_val.push(Self::CharD)
-    }
-    if file.symlink_metadata()?.file_type().is_block_device() {
-      return_val.push(Self::BlockD)
-    }
-    if file.symlink_metadata()?.file_type().is_socket() {
-      return_val.push(Self::Socket)
-    }
-    if return_val.is_empty() {
-      return_val.push(Self::Path)
-    }
+    if file.symlink_metadata()?.is_dir() { return_val.push(Self::Dir) }
+    if file.symlink_metadata()?.file_type().is_symlink() { return_val.push(Self::Symlink) }
+    if file.symlink_metadata()?.file_type().is_fifo() { return_val.push(Self::Pipe) }
+    if file.symlink_metadata()?.file_type().is_char_device() { return_val.push(Self::CharD) }
+    if file.symlink_metadata()?.file_type().is_block_device() { return_val.push(Self::BlockD) }
+    if file.symlink_metadata()?.file_type().is_socket() { return_val.push(Self::Socket) }
+    if return_val.is_empty() { return_val.push(Self::Path) }
 
     Ok(return_val)
   }
