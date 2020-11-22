@@ -1,543 +1,355 @@
-#![allow(clippy::collapsible_if)]
-extern crate libc;
-extern crate pretty_bytes;
-use ansi_term::Style;
-use chrono::prelude::*;
-use filetime::FileTime;
-use humansize::{file_size_opts as options, FileSize};
-use libc::{S_IRGRP, S_IROTH, S_IRUSR, S_IWGRP, S_IWOTH, S_IWUSR, S_IXGRP, S_IXOTH, S_IXUSR};
-use pretty_bytes::converter::convert;
-use std::{
-  fs, io,
-  os::unix::fs::{MetadataExt, PermissionsExt},
-};
+#![allow(dead_code)]
+
+mod input;
+mod text_effects;
+mod utils;
+use std::os::unix::fs::{MetadataExt, FileTypeExt};
 use structopt::StructOpt;
-use termion::color;
-use users::{get_group_by_gid, get_user_by_uid, uid_t};
+use termion;
 
-/// the ls replacement you never knew you needed
-#[derive(StructOpt, Debug)]
-pub struct Cli {
-  /// Give me a directory
-  #[structopt(parse(from_os_str), default_value = ".")]
-  path: std::path::PathBuf,
-
-  /// Enables helper headline
-  #[structopt(short = "l", long = "headline")]
-  headline_on: bool,
-
-  /// Shows hidden files
-  #[structopt(short = "a", long = "arehidden")]
-  hidden_files: bool,
-
-  /// Enables wide mode output
-  #[structopt(short, long = "wide")]
-  wide_mode: bool,
-
-  /// Disables the file time modified output
-  #[structopt(short, long = "time")]
-  time_on: bool,
-
-  /// Disables file size output
-  #[structopt(short, long = "size")]
-  size_on: bool,
-
-  /// Disables the file group output
-  #[structopt(short, long = "group")]
-  group_on: bool,
-
-  /// Disables the permissions output
-  #[structopt(short, long = "perms")]
-  perms_on: bool,
-
-  /// Disables the file user output
-  #[structopt(short, long = "user")]
-  user_on: bool,
-
-  /// Turns off sorting
-  #[structopt(short = "n", long = "nsort")]
-  is_sorted: bool,
-
-  /// Turns off color output
-  #[structopt(short = "c", long = "ncolors")]
-  colors_on: bool,
-
-  /// Specify time format https://docs.rs/chrono/*/chrono/format/strftime/index.html
-  #[structopt(long = "time-format", default_value = "%e %b %T")]
-  time_format: String,
-
-  /// Turns off sorting by name (on by default)
-  #[structopt(long="no-name")]
-  by_name: bool,
-
-  /// Sorts by files by date modified
-  #[structopt(short="m")]
-  by_modified: bool,
+struct Directory {
+  paths: Vec<File>,
 }
 
-fn output() -> Result<(), Box<dyn std::error::Error>> {
-  let args = Cli::from_args();
-  let directory = &args.path;
-  let hidden_files = &args.hidden_files;
-  let wide_mode = &args.wide_mode;
-  let time_on = &args.time_on;
-  let size_on = &args.size_on;
-  let group_on = &args.group_on;
-  let perms_on = &args.perms_on;
-  let user_on = &args.user_on;
-  let is_sorted = &args.is_sorted;
-  let time_format = &args.time_format;
-  let colors_on = &args.colors_on;
-  let headline_on = &args.headline_on;
-  let by_name = &args.by_name;
-  let by_modified = &args.by_modified;
+#[derive(Clone)]
+struct File {
+  path: std::path::PathBuf,
+  file_type: Vec<PathType>,
+  group: String,
+  user: String,
+  modified: String,
+  created: String,
+  size: String,
+  perms: String,
+}
 
-  draw_headlines(*headline_on, *perms_on, *size_on, *time_on, *group_on, *user_on);
+enum DirSortType {
+  Name,
+  Created,
+  Modified,
+  Size,
+  Not,
+}
 
-  let mut singly_found = false;
-  if !std::path::Path::new(directory).exists() {
-    let mut entries = fs::read_dir(".")?
-      .map(|res| res.map(|e| e.path()))
-      .collect::<Result<Vec<_>, io::Error>>()?;
-    if *by_modified {
-      entries.sort_by(|a, b| FileTime::from_last_modification_time(&fs::symlink_metadata(&a).unwrap()).seconds().cmp(&FileTime::from_last_modification_time(&fs::symlink_metadata(&b).unwrap()).seconds())); 
-    }
-    if !*by_name {
-      entries.sort_by(|a, b| a.file_name().unwrap().to_str().unwrap().to_lowercase().cmp(&b.file_name().unwrap().to_str().unwrap().to_lowercase()));
-    }
+#[derive(Copy, Clone, Debug)]
+enum PathType {
+  Dir,
+  Symlink,
+  Path,
+  Pipe,
+  CharD,
+  BlockD,
+  Socket,
+}
 
-    let mut size_count = 4;
-    for s in &entries {
-      if convert(fs::symlink_metadata(&s)?.size() as f64).len() > size_count {
-        size_count = convert(fs::symlink_metadata(&s)?.size() as f64).len();
-      };
+impl PathType {
+  fn new(file: &std::path::PathBuf) -> Result<Vec<Self>, Box<dyn std::error::Error>> {
+    let mut return_val = Vec::new();
+    if file.symlink_metadata()?.is_dir() { return_val.push(Self::Dir) } 
+    if file.symlink_metadata()?.file_type().is_symlink() { return_val.push(Self::Symlink) }
+    if file.symlink_metadata()?.file_type().is_fifo() { return_val.push(Self::Pipe) } 
+    if file.symlink_metadata()?.file_type().is_char_device() { return_val.push(Self::CharD) }
+    if file.symlink_metadata()?.file_type().is_block_device() { return_val.push(Self::BlockD) }
+    if file.symlink_metadata()?.file_type().is_socket() { return_val.push(Self::Socket) } 
+    if return_val.is_empty() { return_val.push(Self::Path) }
+
+    Ok(return_val)
+  }
+
+  fn get_letter_for_type(&self) -> String {
+    match self {
+      Self::Dir =>     String::from(format!("{}d{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)) ),
+      Self::Symlink => String::from(format!("{}l{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)) ),
+      Self::Pipe =>    String::from(format!("{}|{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)) ),
+      Self::CharD =>   String::from(format!("{}c{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)) ),
+      Self::BlockD =>  String::from(format!("{}b{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)) ),
+      Self::Socket =>  String::from(format!("{}s{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)) ),
+      _ =>             String::from(format!("{}.{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)) ),
     }
-    for e in &entries {
-      if e
-        .file_name()
-          .unwrap()
-          .to_str()
-          .unwrap()
-          .to_lowercase()
-          .contains(&args.path.display().to_string().to_lowercase())
-          {
-            let _ = single(e, size_count, *wide_mode, time_format);
-            singly_found = true;
-          }
+  }
+
+  fn get_color_for_type(&self) -> String {
+    match self {
+      Self::Dir =>     format!("{}", termion::color::Fg(termion::color::LightBlue)),
+      Self::Symlink => format!("{}", termion::color::Fg(termion::color::LightMagenta)),
+      Self::Path =>    format!("{}", termion::color::Fg(termion::color::White)),
+      Self::Pipe =>    format!("{}", termion::color::Fg(termion::color::Yellow)),
+      Self::CharD =>   format!("{}{}", termion::color::Bg(termion::color::Yellow), termion::color::Fg(termion::color::LightBlue)),
+      Self::BlockD =>  format!("{}", termion::color::Fg(termion::color::LightGreen)),
+      Self::Socket =>  format!("{}", termion::color::Fg(termion::color::LightRed)),
     }
-    if !singly_found {
-      if !*colors_on {
-        print!("{}", color::Fg(color::Red));
+  }
+
+  fn get_text_traits_for_type(&self, name: &str, file: &std::path::PathBuf) -> String {
+    match self {
+      Self::Dir =>     text_effects::bold(&format!("{}{}/", name, termion::color::Fg(termion::color::White))),
+      Self::Symlink => text_effects::italic(&format!("{} -> {}", name, std::fs::canonicalize(std::fs::read_link(file).unwrap()).unwrap_or(file.clone()).to_str().unwrap_or(name))),
+      Self::Path =>    text_effects::bold(name),
+      Self::Pipe =>    text_effects::bold(&format!("{}{}|", name, termion::color::Fg(termion::color::White))),
+      Self::CharD =>   text_effects::bold(name),
+      Self::BlockD =>  text_effects::bold(name),
+      Self::Socket =>  text_effects::bold(&format!("{}{}=", name, termion::color::Fg(termion::color::White))),
+    }
+  }
+}
+
+impl File {
+  fn new(file: std::path::PathBuf) -> Self {
+    Self {
+      group:     utils::get_group::group( file.clone() ),
+      user:      utils::get_user::user( file.clone() ),
+      modified:  utils::file_times::modified( file.clone(), input::Cli::from_args().time_format ),
+      created:   utils::file_times::created( file.clone(), input::Cli::from_args().time_format ),
+      size:      utils::size::size( file.clone() ), 
+      perms:     utils::perms::perms( file.clone() ),
+      file_type: PathType::new(&file).unwrap(),
+      path: file,
+    }
+  }
+}
+
+fn get_sort_type(sort_t: [bool; 4]) -> DirSortType {
+  for (i, t) in sort_t.iter().enumerate() {
+    if *t {
+      match i {
+        0 => return DirSortType::Name,
+        1 => return DirSortType::Created,
+        2 => return DirSortType::Modified, 
+        3 => return DirSortType::Size,
+        _ => ()
       }
-      println!(
-        "{}",
-        Style::new().bold().paint(format!(
-            "{} could not be found",
-            &args.path.display().to_string()
-        ))
-      );
-      std::process::exit(1);
-    }
-    std::process::exit(0);
-  }
-
-  if !directory.symlink_metadata()?.is_dir() {
-    let _ = single(&directory, 4 as usize, *wide_mode, time_format);
-    std::process::exit(0);
-  }
-
-  let mut entries = fs::read_dir(directory)?
-    .map(|res| res.map(|e| e.path()))
-    .collect::<Result<Vec<_>, io::Error>>()?;
-
-  if *by_modified {
-    entries.sort_by(|a, b| FileTime::from_last_modification_time(&fs::symlink_metadata(&a).unwrap()).seconds().cmp(&FileTime::from_last_modification_time(&fs::symlink_metadata(&b).unwrap()).seconds())); 
-  }
-  if !*by_name {
-    entries.sort_by(|a, b| a.file_name().unwrap().to_str().unwrap().to_lowercase().cmp(&b.file_name().unwrap().to_str().unwrap().to_lowercase()));
-  }
-  let mut size_count = 4;
-  let mut group_size = 8;
-  for s in &entries {
-    if (fs::symlink_metadata(&s)?.size()).file_size(options::CONVENTIONAL).unwrap().len() > size_count {
-      size_count = (fs::symlink_metadata(&s)?.size()).file_size(options::CONVENTIONAL).unwrap().len();
-    };
-
-    let metadata_uid = fs::symlink_metadata(&s)?.uid();
-    let user_name_len = get_user_name(metadata_uid).len();
-    if user_name_len > group_size {
-      group_size = user_name_len;
     }
   }
+  DirSortType::Not
+}
 
-  let mut dirs: Vec<&std::path::PathBuf> = vec![];
+impl Directory {
+  fn new(dir: std::path::PathBuf) -> Result<Self, Box<dyn std::error::Error>> {
+    if !std::path::Path::new(&dir).exists() {
+      let mut new_paths = Vec::new();
+      let paths = std::fs::read_dir(".")?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<std::path::PathBuf>, std::io::Error>>()?;
 
-  for e in &entries {
-    if !&e.file_name().unwrap().to_str().unwrap().starts_with('.') || *hidden_files {
-      if e.is_file() && !*is_sorted {
-        dirs.push(e);
+      for p in paths {
+        if p
+          .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_lowercase()
+            .contains(&dir.display().to_string().to_lowercase())
+            {
+              new_paths.push(File::new(p))
+            }
+      }
+
+      if new_paths.is_empty() {
+        println!("{}Path could not be found", termion::color::Fg(termion::color::Red));
+        std::process::exit(1)
+      }
+
+      Ok (
+        Self {
+          paths: new_paths,
+        }
+      )
+    } else {
+      let paths = std::fs::read_dir(dir)?
+        .map(|res| res.map(|e| File::new(e.path())))
+        .collect::<Result<Vec<File>, std::io::Error>>()?;
+      Ok(
+        Self {
+          paths,
+        }
+      )
+    }
+  }
+
+  fn self_name_sort(&mut self) {
+    self.paths.sort_by(|a, b| a.path.file_name().unwrap().to_str().unwrap().to_lowercase().cmp(&b.path.file_name().unwrap().to_str().unwrap().to_lowercase()))
+  }
+
+  fn self_create_sort(&mut self) {
+    self.paths.sort_by(|a, b| a.path.symlink_metadata().unwrap().created().unwrap().cmp(&b.path.symlink_metadata().unwrap().created().unwrap()))
+  }
+
+  fn self_modified_sort(&mut self) {
+    self.paths.sort_by(|a, b| a.path.symlink_metadata().unwrap().modified().unwrap().cmp(&b.path.symlink_metadata().unwrap().modified().unwrap()))
+  }
+
+  fn self_size_sort(&mut self) {
+    self.paths.sort_by(|a, b| a.path.symlink_metadata().unwrap().size().cmp(&b.path.symlink_metadata().unwrap().size()))
+  }
+
+  fn sort_directory_then_path(&mut self) {
+    let new = &self.paths;
+    let mut newer = Vec::new();
+    let mut directories = Vec::new();
+    for (i, f) in new.iter().enumerate() {
+      if f.path.symlink_metadata().unwrap().is_dir() {
+        directories.push(new[i].clone());
       } else {
-        if !perms_on {
-          let _ = file_perms(&e);
-        }
-
-        if !size_on {
-          let _ = file_size(size_count, &e);
-        }
-
-        if !time_on {
-          let _ = time_mod(e, time_format);
-        }
-
-        if !group_on {
-          let _ = show_group_name(e);
-        }
-
-        if !user_on {
-          let _ = show_user_name(e);
-        }
-
-        let _ = show_file_name(&e, *wide_mode);
+        newer.push(new[i].clone())
       }
+    } 
+
+    match get_sort_type([input::Cli::from_args().name, input::Cli::from_args().created, input::Cli::from_args().modified, input::Cli::from_args().size]) {
+      DirSortType::Name => {
+        name_sort(&mut directories);
+        name_sort(&mut newer)
+      },
+      DirSortType::Created => {
+        create_sort(&mut directories);
+        create_sort(&mut newer)
+      },
+      DirSortType::Modified => {
+        modified_sort(&mut directories);
+        modified_sort(&mut newer)
+      },
+      DirSortType::Size => {
+        size_sort(&mut directories);
+        size_sort(&mut newer)
+      },
+      DirSortType::Not => (),
+    }
+
+    directories.append(&mut newer);
+    self.paths = directories; 
+  }
+
+  fn sort_paths(&mut self) {
+    match get_sort_type([input::Cli::from_args().name, input::Cli::from_args().created, input::Cli::from_args().modified, input::Cli::from_args().size]) {
+      DirSortType::Name =>     self.self_name_sort(),
+      DirSortType::Created =>  self.self_create_sort(),
+      DirSortType::Modified => self.self_modified_sort(),
+      DirSortType::Size =>     self.self_size_sort(),
+      DirSortType::Not =>      (),
     }
   }
 
-  for e in dirs {
-    let _ = single(e, size_count, *wide_mode, time_format);
+  fn sort(&mut self) {
+    match input::Cli::from_args().gdf {
+      true =>  self.sort_directory_then_path(),
+      false => self.sort_paths(),
+    }
   }
 
-  Ok(())
+  fn add_space(&mut self) {
+    let mut gs = 0;
+    let mut us = 0;
+    let mut ss = 0;
+    for p in self.paths.clone() {
+      if p.group.len() > gs {
+        gs = p.group.len()
+      }
+      if p.user.len() > us {
+        us = p.user.len()
+      }
+      if p.size.len() > ss {
+        ss = p.size.len()
+      }
+    }
+
+    for p in 0..self.paths.clone().len() {
+      let ghold = &self.paths.clone()[p].group;
+      let uhold = &self.paths.clone()[p].user;
+      let shold = &self.paths.clone()[p].size;
+      let gspace = gs - ghold.len();
+      let uspace = us - uhold.len();
+      let sspace = ss - shold.len();
+      let mut gwidth = String::from("");
+      for _ in 0..gspace {
+        gwidth.push(' ')
+      }
+      let mut uwidth = String::from("");
+      for _ in 0..uspace {
+        uwidth.push(' ')
+      }
+      let mut swidth = String::from("");
+      for _ in 0..sspace {
+        swidth.push(' ')
+      } 
+      self.paths[p].group = format!("{}{}", ghold, gwidth );
+      self.paths[p].user = format!("{}{}", uhold, uwidth );
+      self.paths[p].size = format!("{}{}", swidth, shold);
+    }
+  }
+
+  fn setup(&mut self) {
+    self.sort();
+    self.add_space(); 
+  }
+}
+
+fn name_sort(dir: &mut Vec<File>) {
+  dir.sort_by(|a, b| a.path.file_name().unwrap().to_str().unwrap().to_lowercase().cmp(&b.path.file_name().unwrap().to_str().unwrap().to_lowercase()))
+}
+
+fn create_sort(dir: &mut Vec<File>) {
+  dir.sort_by(|a, b| a.path.symlink_metadata().unwrap().created().unwrap().cmp(&b.path.symlink_metadata().unwrap().created().unwrap()))
+}
+
+fn modified_sort(dir: &mut Vec<File>) {
+  dir.sort_by(|a, b| a.path.symlink_metadata().unwrap().modified().unwrap().cmp(&b.path.symlink_metadata().unwrap().modified().unwrap()))
+}
+
+fn size_sort(dir: &mut Vec<File>) {
+  dir.sort_by(|a, b| a.path.symlink_metadata().unwrap().size().cmp(&b.path.symlink_metadata().unwrap().size()))
+}
+
+impl std::fmt::Display for File {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    let mut res = String::new();
+    for (i, v) in self.file_type.iter().enumerate() {
+      if i == 0 {
+        res = format!("{}{}", v.get_color_for_type(), v.get_text_traits_for_type(self.path.file_name().unwrap().to_str().unwrap(), &self.path));
+      } else {
+        res = format!("{}{}", v.get_color_for_type(), v.get_text_traits_for_type(&res, &self.path));
+      }
+    }
+    write!(f, "{}", res )
+  }
+}
+
+impl std::fmt::Debug for File {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    let mut res = String::new();
+    for (i, v) in self.file_type.iter().enumerate() {
+      if i == 0 {
+        res = v.get_text_traits_for_type(self.path.file_name().unwrap().to_str().unwrap(), &self.path);
+        res = format!("{}{}", v.get_color_for_type(), res);
+      } else {
+        res = v.get_text_traits_for_type(&res, &self.path);
+        res = format!("{}{}", v.get_color_for_type(), res);
+      }
+    }
+    let mut time = self.modified.clone();
+    if input::Cli::from_args().created_time {
+      time = self.created.clone()
+    }
+    write!(f, "{} {}{} {}{} {} {}{} {}\n", self.perms, termion::color::Fg(termion::color::LightGreen), self.size, termion::color::Fg(termion::color::Yellow), self.user, self.group, termion::color::Fg(termion::color::Blue), time, res)
+  }
+}
+
+impl std::fmt::Display for Directory {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    Ok(
+      for i in self.paths.iter() {
+        match input::Cli::from_args().long {
+          true => write!(f, "{:?}", i)?,
+          _ => write!(f, "{} ", i)?,
+        }
+      }
+    )
+  }
 }
 
 fn main() {
-  let _ = output();
+  let mut dir = Directory::new(input::Cli::from_args().dir).unwrap();
+  dir.setup();
+  println!("{}", dir)
 }
 
-pub fn draw_headlines(
-  headline_on: bool,
-  perms_on: bool,
-  size_on: bool,
-  time_on: bool,
-  group_on: bool,
-  user_on: bool,
-  ) {
-  if headline_on {
-    if !perms_on {
-      draw_headline("permissions", 0, false);
-    }
-    if !size_on {
-      draw_headline("size", 0, true);
-    }
-    if !time_on {
-      draw_headline("last modified", 0, true);
-    }
-    if !group_on {
-      draw_headline("group", 0, true);
-    }
-    if !user_on {
-      draw_headline("user", 0, true);
-    }
-    draw_headline("name", 0, true);
-    println!();
-  }
-}
-
-pub fn file_perms(e: &&std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-  let mode = fs::symlink_metadata(&e)?.permissions().mode();
-  if !Cli::from_args().colors_on {
-    print!("{}", color::Fg(color::White));
-  }
-  print!("{} ", perms(mode as u16));
-  Ok(())
-}
-
-pub fn file_size(
-  size_count: usize,
-  e: &&std::path::PathBuf,
-  ) -> Result<(), Box<dyn std::error::Error>> {
-  if (fs::symlink_metadata(&e)?.size()).file_size(options::CONVENTIONAL).unwrap().len() < size_count {
-    for _ in 0..(size_count - (fs::symlink_metadata(&e)?.size()).file_size(options::CONVENTIONAL).unwrap().len())
-    {
-      print!(" ");
-    }
-  }
-  if !Cli::from_args().colors_on {
-    print!("{}", color::Fg(color::Green));
-  }
-  print!(
-    "{} ",
-    Style::new().bold().paint(
-      (fs::symlink_metadata(&e)?.size())
-      .file_size(options::CONVENTIONAL)
-      .unwrap()
-    )
-  );
-  Ok(())
-}
-
-pub fn time_mod(
-  e: &std::path::PathBuf,
-  time_format: &str,
-  ) -> Result<(), Box<dyn std::error::Error>> {
-  if e.symlink_metadata()?.modified().is_ok() {
-    let timestamp = fs::symlink_metadata(e)?;
-    let naive = NaiveDateTime::from_timestamp(
-      FileTime::from_last_modification_time(&timestamp).seconds() as i64,
-      0,
-      );
-    //let now = Utc::now();
-    //let back = NaiveDateTime::from_timestamp(FileTime::from_last_modification_time(&timestamp).seconds() as i64, 0);
-    //let d: DateTime<Utc> = DateTime::from_utc(back, Utc);
-    //let rel = chrono::Duration::seconds(now.signed_duration_since(d).num_seconds());
-    //match rel.num_seconds() > 60 {
-      //true => {
-        //match rel.num_minutes() > 60 {
-          //true => {
-            //match rel.num_hours() > 24 {
-              //true => {
-                //match rel.num_days() > 7 {
-                  //true => {
-                    //print!("{} weeks", rel.num_weeks());
-                  //}
-                  //false => {
-                    //print!("{} days", rel.num_days());
-                  //}
-                //}
-              //}
-              //false => {
-                //print!("{} hours", rel.num_hours());
-              //}
-            //}
-          //}
-          //false => {
-            //print!("{} min", rel.num_minutes());
-          //}
-        //}
-      //}
-      //false => {
-        //print!("{} secs", rel.num_seconds());
-      //}
-    //}
-    let datetime: DateTime<Local> = DateTime::from_utc(naive, *Local::now().offset());
-    if !Cli::from_args().colors_on {
-      print!("{}", color::Fg(color::LightRed));
-    }
-    print!("{} ", datetime.format(time_format));
-  }
-  Ok(())
-}
-
-pub fn show_group_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-  if !Cli::from_args().colors_on {
-    print!("{}", color::Fg(color::LightBlue));
-  }
-
-  print!(
-    "{} ",
-    Style::new().bold().paint(
-      match get_group_by_gid(fs::symlink_metadata(e)?.gid()).as_ref() {
-        Some(n) => n.name().to_str().unwrap(),
-        None => "",
-      }
-    )
-  );
-  Ok(())
-}
-
-pub fn show_user_name(e: &std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-  if !Cli::from_args().colors_on {
-    print!("{}", color::Fg(color::LightYellow));
-  }
-  print!(
-    "{} ",
-    Style::new().bold().paint(
-      match get_user_by_uid(fs::symlink_metadata(e)?.uid()).as_ref() {
-        Some(n) => n.name().to_str().unwrap(),
-        None => "",
-      }
-    )
-  );
-  Ok(())
-}
-
-pub fn show_file_name(
-  e: &&std::path::PathBuf,
-  wide_mode: bool,
-  ) -> Result<(), Box<dyn std::error::Error>> {
-  let colors_on = Cli::from_args().colors_on;
-  if !colors_on {
-    print!("{}", color::Fg(color::White));
-  }
-  if e.symlink_metadata()?.is_dir() {
-    if !colors_on {
-      print!("{}", color::Fg(color::LightBlue));
-    }
-    print!("{}/", &e.file_name().unwrap().to_str().unwrap());
-    if !wide_mode {
-      println!();
-    } else {
-      print!(" ");
-    }
-  } else if e.symlink_metadata()?.file_type().is_symlink() {
-    if !colors_on {
-      print!("{}", color::Fg(color::LightMagenta));
-    }
-    print!(
-      "{} -> ",
-      Style::new()
-      .bold()
-      .paint(e.file_name().unwrap().to_str().unwrap())
-    );
-    match fs::canonicalize(fs::read_link(e)?) {
-      Ok(_n) => {
-        if fs::read_link(e)?.is_dir() {
-          if !colors_on {
-            print!("{}", color::Fg(color::LightBlue));
-            print!(
-              "{}/",
-              fs::canonicalize(fs::read_link(e)?)
-              .unwrap()
-              .to_str()
-              .unwrap()
-            )
-          }
-        } else {
-          if !colors_on {
-            print!("{}", color::Fg(color::LightGreen));
-            print!(
-              "{}",
-              fs::canonicalize(fs::read_link(e)?)
-              .unwrap()
-              .to_str()
-              .unwrap()
-            )
-          }
-        }
-      }
-      Err(_err) => {
-        if fs::read_link(e)?.is_dir() {
-          if !colors_on {
-            print!("{}", color::Fg(color::LightBlue));
-            print!(
-              "{}/",
-              fs::read_link(e)?.file_name().unwrap().to_str().unwrap()
-            )
-          }
-        } else {
-          if !colors_on {
-            print!("{}", color::Fg(color::LightGreen));
-            print!(
-              "{}",
-              fs::read_link(e)?.file_name().unwrap().to_str().unwrap()
-            )
-          }
-        }
-      }
-    }
-    if !wide_mode {
-      println!();
-    } else {
-      print!(" ");
-    }
-  } else {
-    if !colors_on {
-      print!("{}", color::Fg(color::LightGreen));
-    }
-    print!(
-      "{}",
-      Style::new()
-      .bold()
-      .paint(e.file_name().unwrap().to_str().unwrap())
-    );
-    if !wide_mode {
-      println!();
-    } else {
-      print!(" ");
-    }
-  }
-  print!("{}", color::Fg(color::Reset));
-  Ok(())
-}
-
-pub fn draw_headline(input: &str, line_length: usize, print_separator: bool) {
-  if print_separator {
-    print!(" {}", Style::new().underline().paint(input));
-  } else {
-    print!("{}", Style::new().underline().paint(input));
-  }
-  draw_line(line_length);
-}
-
-fn draw_line(to: usize) {
-  for _ in 0..to {
-    print!("{}", Style::new().underline().paint(" "));
-  }
-}
-
-pub fn get_user_name(uid: uid_t) -> String {
-  match get_user_by_uid(uid) {
-    Some(m) => m.name().to_str().unwrap().to_string(),
-    None => "".to_string(),
-  }
-}
-
-pub fn single(
-  e: &std::path::PathBuf,
-  size_count: usize,
-  wide_mode: bool,
-  time_format: &str,
-  ) -> Result<(), Box<dyn std::error::Error>> {
-  let args = Cli::from_args();
-
-  if !&args.perms_on {
-    let _ = file_perms(&e);
-  }
-
-  if !&args.size_on {
-    let _ = file_size(size_count, &e);
-  }
-
-  if !&args.time_on {
-    let _ = time_mod(e, time_format);
-  }
-
-  if !&args.group_on {
-    let _ = show_group_name(e);
-  }
-
-  if !&args.user_on {
-    let _ = show_user_name(e);
-  }
-  let _ = show_file_name(&e, wide_mode);
-  Ok(())
-}
-
-pub fn perms(mode: u16) -> String {
-  let user = triplet(mode, S_IRUSR as u16, S_IWUSR as u16, S_IXUSR as u16);
-  let group = triplet(mode, S_IRGRP as u16, S_IWGRP as u16, S_IXGRP as u16);
-  let other = triplet(mode, S_IROTH as u16, S_IWOTH as u16, S_IXOTH as u16);
-  if !Cli::from_args().colors_on {
-    [
-      format!("{}{}", color::Fg(color::Blue), user),
-      format!("{}{}", color::Fg(color::LightRed), group),
-      format!("{}{}", color::Fg(color::Yellow), other),
-    ]
-      .join("")
-  } else {
-    [user, group, other].join("")
-  }
-}
-
-pub fn triplet(mode: u16, read: u16, write: u16, execute: u16) -> String {
-  match (mode & read, mode & write, mode & execute) {
-    (0, 0, 0) => "---",
-    (_, 0, 0) => "r--",
-    (0, _, 0) => "-w-",
-    (0, 0, _) => "--x",
-    (_, 0, _) => "r-x",
-    (_, _, 0) => "rw-",
-    (0, _, _) => "-wx",
-    (_, _, _) => "rwx",
-  }
-  .to_string()
-}
+#[cfg(test)]
+mod tests;
