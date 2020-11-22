@@ -321,7 +321,7 @@ impl Directory {
 
   fn sort(&mut self) {
     match input::Cli::from_args().gdf {
-      true => self.sort_directory_then_path(),
+      true =>  self.sort_directory_then_path(),
       false => self.sort_paths(),
     }
   }
@@ -359,8 +359,8 @@ impl Directory {
         swidth.push(' ')
       }
       self.paths[p].group = format!("{}{}", ghold, gwidth);
-      self.paths[p].user =  format!("{}{}", uhold, uwidth);
-      self.paths[p].size =  format!("{}{}", swidth, shold);
+      self.paths[p].user  = format!("{}{}", uhold, uwidth);
+      self.paths[p].size  = format!("{}{}", swidth, shold);
     }
   }
 
@@ -474,7 +474,7 @@ impl std::fmt::Display for Directory {
     Ok(for i in self.paths.iter() {
       match input::Cli::from_args().long {
         true => write!(f, "{:?}", i)?,
-        _ =>    write!(f, "{} ", i)?,
+        _    => write!(f, "{} ", i)?,
       }
     })
   }
