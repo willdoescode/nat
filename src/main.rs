@@ -144,7 +144,7 @@ impl PathType {
         "{} -> {}",
         name,
         std::fs::canonicalize(std::fs::read_link(file).unwrap())
-          .unwrap_or(file.clone())
+          .unwrap_or(file.to_path_buf())
           .to_str()
           .unwrap_or(name)
       )),
@@ -168,12 +168,12 @@ impl PathType {
 impl File {
   fn new(file: std::path::PathBuf) -> Self {
     Self {
-      group:     utils::get_group::group(file.clone()),
-      user:      utils::get_user::user(file.clone()),
-      modified:  utils::file_times::modified(file.clone(), input::Cli::from_args().time_format),
-      created:   utils::file_times::created(file.clone(), input::Cli::from_args().time_format),
-      size:      utils::size::size(file.clone()),
-      perms:     utils::perms::perms(file.clone()),
+      group:     utils::get_group::group(file.to_path_buf()),
+      user:      utils::get_user::user(file.to_path_buf()),
+      modified:  utils::file_times::modified(file.to_path_buf(), input::Cli::from_args().time_format),
+      created:   utils::file_times::created(file.to_path_buf(), input::Cli::from_args().time_format),
+      size:      utils::size::size(file.to_path_buf()),
+      perms:     utils::perms::perms(file.to_path_buf()),
       file_type: PathType::new(&file).unwrap(),
       path: file,
     }
@@ -463,9 +463,9 @@ impl std::fmt::Debug for File {
         res = format!("{}{}", v.get_color_for_type(), res);
       }
     }
-    let mut time = self.modified.clone();
+    let mut time = &self.modified;
     if input::Cli::from_args().created_time {
-      time = self.created.clone()
+      time = &self.created;
     }
     write!(
       f,

@@ -1,6 +1,6 @@
 [package]
 name = "natls"
-version = "2.1.1"
+version = "2.1.2"
 authors = ["Will Lane <williamlane923@gmail.com>"]
 description = "nat - the 'ls' replacement you never knew you needed"
 license = "MIT"
