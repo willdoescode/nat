@@ -29,4 +29,3 @@ pub fn hidden(i: &str) -> String {
 pub fn stricken(i: &str) -> String {
   format!("\x1B[9m{}\x1B[0m", i)
 }
-
