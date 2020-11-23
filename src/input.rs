@@ -1,6 +1,8 @@
 use structopt::StructOpt;
 
 /// The ls replacement you never knew you needed
+///
+/// Written by: William Lane
 #[derive(StructOpt)]
 pub struct Cli {
   /// Give me a directory
@@ -31,11 +33,11 @@ pub struct Cli {
   #[structopt(short = "l", long = "long")]
   pub long: bool,
 
-  /// Formats the time output
+  /// Formats the time output 
   #[structopt(long = "time-format", default_value = "%e %b %T")]
   pub time_format: String,
 
   /// Shows the file created time instead of the file modified time
-  #[structopt(long = "ct")]
+  #[structopt(short = "i", long = "ct")]
   pub created_time: bool,
 }
