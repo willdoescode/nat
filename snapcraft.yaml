@@ -1,5 +1,5 @@
 name: natls
-version: '2.1.5'
+version: '2.1.6'
 summary: the 'ls' replacement you never knew you needed
 description: |
   Nat is a complete replacement for the 'ls' command
