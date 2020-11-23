@@ -1,5 +1,1 @@
-edition = "2018"
-format_code_in_doc_comments = true
-merge_imports = true
-newline_style = "unix"
-tab_spaces = 2
+disable_all_formatting = true
