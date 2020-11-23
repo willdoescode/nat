@@ -129,10 +129,7 @@ impl PathType {
       Self::Symlink => text_effects::italic(&format!(
         "{} -> {}",
         name,
-        std::fs::canonicalize(std::fs::read_link(file).unwrap())
-          .unwrap_or(file.to_path_buf())
-          .to_str()
-          .unwrap_or(name)
+        std::fs::read_link(file).unwrap().display().to_string()
       )),
       Self::Path => text_effects::bold(name),
       Self::Pipe => text_effects::bold(&format!(
@@ -422,7 +419,7 @@ impl std::fmt::Display for File {
         res = format!(
           "{}{}",
           v.get_color_for_type(),
-          v.get_text_traits_for_type(self.path.file_name().unwrap().to_str().unwrap(), &self.path)
+          v.get_text_traits_for_type(&self.path.components().next_back().unwrap().as_os_str().to_string_lossy().to_string(), &self.path)
         );
       } else {
         res = format!(
@@ -442,7 +439,7 @@ impl std::fmt::Debug for File {
     for (i, v) in self.file_type.iter().enumerate() {
       if i == 0 {
         res =
-          v.get_text_traits_for_type(self.path.file_name().unwrap().to_str().unwrap(), &self.path);
+          v.get_text_traits_for_type(&self.path.components().next_back().unwrap().as_os_str().to_string_lossy().to_string(), &self.path);
         res = format!("{}{}", v.get_color_for_type(), res);
       } else {
         res = v.get_text_traits_for_type(&res, &self.path);
