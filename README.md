@@ -49,7 +49,9 @@ cargo install natls
 ```
 
 ### Alternative (linux)
-[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-white.svg)](https://snapcraft.io/natls)
+
+[![natls](https://snapcraft.io/natls/badge.svg)](https://snapcraft.io/natls)
+[![natls](https://snapcraft.io/natls/trending.svg?name=0)](https://snapcraft.io/natls)
 
 ```bash
 sudo snap install natls
