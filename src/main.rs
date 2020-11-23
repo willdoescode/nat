@@ -58,92 +58,37 @@ impl PathType {
 
   fn get_letter_for_type(&self) -> String {
     match self {
-      Self::Dir => String::from(format!(
-        "{}d{}{}",
-        self.get_color_for_type(),
-        termion::color::Fg(termion::color::Reset),
-        termion::color::Bg(termion::color::Reset)
-      )),
-      Self::Symlink => String::from(format!(
-        "{}l{}{}",
-        self.get_color_for_type(),
-        termion::color::Fg(termion::color::Reset),
-        termion::color::Bg(termion::color::Reset)
-      )),
-      Self::Pipe => String::from(format!(
-        "{}|{}{}",
-        self.get_color_for_type(),
-        termion::color::Fg(termion::color::Reset),
-        termion::color::Bg(termion::color::Reset)
-      )),
-      Self::CharD => String::from(format!(
-        "{}c{}{}",
-        self.get_color_for_type(),
-        termion::color::Fg(termion::color::Reset),
-        termion::color::Bg(termion::color::Reset)
-      )),
-      Self::BlockD => String::from(format!(
-        "{}b{}{}",
-        self.get_color_for_type(),
-        termion::color::Fg(termion::color::Reset),
-        termion::color::Bg(termion::color::Reset)
-      )),
-      Self::Socket => String::from(format!(
-        "{}s{}{}",
-        self.get_color_for_type(),
-        termion::color::Fg(termion::color::Reset),
-        termion::color::Bg(termion::color::Reset)
-      )),
-      _ => String::from(format!(
-        "{}.{}{}",
-        self.get_color_for_type(),
-        termion::color::Fg(termion::color::Reset),
-        termion::color::Bg(termion::color::Reset)
-      )),
+      Self::Dir     => format!( "{}d{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
+      Self::Symlink => format!( "{}l{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
+      Self::Pipe    => format!( "{}|{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
+      Self::CharD   => format!( "{}c{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
+      Self::BlockD  => format!( "{}b{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
+      Self::Socket  => format!( "{}s{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
+      _             => format!( "{}.{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
     }
   }
 
   fn get_color_for_type(&self) -> String {
     match self {
-      Self::Dir =>     format!("{}", termion::color::Fg(termion::color::LightBlue)),
-      Self::Symlink => format!("{}", termion::color::Fg(termion::color::LightMagenta)),
-      Self::Path =>    format!("{}", termion::color::Fg(termion::color::White)),
-      Self::Pipe =>    format!("{}", termion::color::Fg(termion::color::Yellow)),
-      Self::CharD =>   format!(
-        "{}{}",
-        termion::color::Bg(termion::color::Yellow),
-        termion::color::Fg(termion::color::LightBlue)
-      ),
-      Self::BlockD => format!("{}", termion::color::Fg(termion::color::LightGreen)),
-      Self::Socket => format!("{}", termion::color::Fg(termion::color::LightRed)),
+      Self::Dir     => format!("{}",    termion::color::Fg(termion::color::LightBlue)),
+      Self::Symlink => format!("{}",    termion::color::Fg(termion::color::LightMagenta)),
+      Self::Path    => format!("{}",    termion::color::Fg(termion::color::White)),
+      Self::Pipe    => format!("{}",    termion::color::Fg(termion::color::Yellow)),
+      Self::CharD   => format!( "{}{}", termion::color::Bg(termion::color::Yellow), termion::color::Fg(termion::color::LightBlue) ),
+      Self::BlockD  => format!("{}",    termion::color::Fg(termion::color::LightGreen)),
+      Self::Socket  => format!("{}",    termion::color::Fg(termion::color::LightRed)),
     }
   }
 
   fn get_text_traits_for_type(&self, name: &str, file: &std::path::PathBuf) -> String {
     match self {
-      Self::Dir => text_effects::bold(&format!(
-        "{}{}/",
-        name,
-        termion::color::Fg(termion::color::White)
-      )),
-      Self::Symlink => text_effects::italic(&format!(
-        "{} -> {}",
-        name,
-        std::fs::read_link(file).unwrap().display().to_string()
-      )),
-      Self::Path => text_effects::bold(name),
-      Self::Pipe => text_effects::bold(&format!(
-        "{}{}|",
-        name,
-        termion::color::Fg(termion::color::White)
-      )),
-      Self::CharD =>  text_effects::bold(name),
-      Self::BlockD => text_effects::bold(name),
-      Self::Socket => text_effects::bold(&format!(
-        "{}{}=",
-        name,
-        termion::color::Fg(termion::color::White)
-      )),
+      Self::Dir     => text_effects::bold(&format!( "{}{}/", name, termion::color::Fg(termion::color::White) )),
+      Self::Symlink => text_effects::italic(&format!( "{} -> {}", name, std::fs::read_link(file).unwrap().display().to_string() )),
+      Self::Path    => text_effects::bold(name),
+      Self::Pipe    => text_effects::bold(&format!( "{}{}|", name, termion::color::Fg(termion::color::White) )),
+      Self::CharD   => text_effects::bold(name),
+      Self::BlockD  => text_effects::bold(name),
+      Self::Socket  => text_effects::bold(&format!( "{}{}=", name, termion::color::Fg(termion::color::White) )),
     }
   }
 }
@@ -308,17 +253,17 @@ impl Directory {
       input::Cli::from_args().modified,
       input::Cli::from_args().size,
     ]) {
-      DirSortType::Name =>     self.self_name_sort(),
-      DirSortType::Created =>  self.self_create_sort(),
+      DirSortType::Name     => self.self_name_sort(),
+      DirSortType::Created  => self.self_create_sort(),
       DirSortType::Modified => self.self_modified_sort(),
-      DirSortType::Size =>     self.self_size_sort(),
-      DirSortType::Not =>      (),
+      DirSortType::Size     => self.self_size_sort(),
+      DirSortType::Not      => (),
     }
   }
 
   fn sort(&mut self) {
     match input::Cli::from_args().gdf {
-      true =>  self.sort_directory_then_path(),
+      true  => self.sort_directory_then_path(),
       false => self.sort_paths(),
     }
   }
@@ -343,15 +288,15 @@ impl Directory {
       let ghold = self.paths[p].group.clone();
       let uhold = self.paths[p].user.clone();
       let shold = self.paths[p].size.clone();
-      let mut gwidth = String::from("");
+      let mut gwidth = String::new();
       for _ in 0..(gs - ghold.len()) {
         gwidth.push(' ')
       }
-      let mut uwidth = String::from("");
+      let mut uwidth = String::new();
       for _ in 0..(us - uhold.len()) {
         uwidth.push(' ')
       }
-      let mut swidth = String::from("");
+      let mut swidth = String::new();
       for _ in 0..(ss - shold.len()) {
         swidth.push(' ')
       }
@@ -478,9 +423,9 @@ impl std::fmt::Display for Directory {
 }
 
 fn main() {
-  let mut dir = Directory::new(input::Cli::from_args().dir).unwrap();
+  let mut dir = Directory::new(input::Cli::from_args().dir).expect("Failed to run natls");
   dir.setup();
-  println!("{}", dir)
+  println!("{}", dir);
 }
 
 #[cfg(test)]
