@@ -125,6 +125,14 @@ fn get_sort_type(sort_t: [bool; 4]) -> DirSortType {
 
 impl Directory {
   fn new(dir: std::path::PathBuf) -> Result<Self, Box<dyn std::error::Error>> {
+    if !std::path::Path::new(&dir).is_dir() {
+      let f = File::new(dir.clone());
+      match input::Cli::from_args().long {
+        true => print!("{:?}", f),
+        _ => print!("{}", f)
+      }
+      std::process::exit(0)
+    }
     if !std::path::Path::new(&dir).exists() {
       let mut new_paths = Vec::new();
       let paths = std::fs::read_dir(".")?
