@@ -70,25 +70,25 @@ impl PathType {
 
   fn get_color_for_type(&self) -> String {
     match self {
-      Self::Dir     => format!("{}",    termion::color::Fg(termion::color::LightBlue)),
-      Self::Symlink => format!("{}",    termion::color::Fg(termion::color::LightMagenta)),
-      Self::Path    => format!("{}",    termion::color::Fg(termion::color::White)),
-      Self::Pipe    => format!("{}",    termion::color::Fg(termion::color::Yellow)),
-      Self::CharD   => format!( "{}{}", termion::color::Bg(termion::color::Yellow), termion::color::Fg(termion::color::LightBlue) ),
-      Self::BlockD  => format!("{}",    termion::color::Fg(termion::color::LightGreen)),
-      Self::Socket  => format!("{}",    termion::color::Fg(termion::color::LightRed)),
+      Self::Dir     => format!("{}"  ,    termion::color::Fg(termion::color::LightBlue)),
+      Self::Symlink => format!("{}"  ,    termion::color::Fg(termion::color::LightMagenta)),
+      Self::Path    => format!("{}"  ,    termion::color::Fg(termion::color::White)),
+      Self::Pipe    => format!("{}"  ,    termion::color::Fg(termion::color::Yellow)),
+      Self::CharD   => format!("{}{}",    termion::color::Bg(termion::color::Yellow), termion::color::Fg(termion::color::LightBlue) ),
+      Self::BlockD  => format!("{}"  ,    termion::color::Fg(termion::color::LightGreen)),
+      Self::Socket  => format!("{}"  ,    termion::color::Fg(termion::color::LightRed)),
     }
   }
 
   fn get_text_traits_for_type(&self, name: &str, file: &std::path::PathBuf) -> String {
     match self {
-      Self::Dir     => text_effects::bold(&format!( "{}{}/", name, termion::color::Fg(termion::color::White) )),
+      Self::Dir     => text_effects::bold(&format!( "{}{}/"     , name, termion::color::Fg(termion::color::White) )),
       Self::Symlink => text_effects::italic(&format!( "{} -> {}", name, std::fs::read_link(file).unwrap().display().to_string() )),
-      Self::Path    => text_effects::bold(name),
-      Self::Pipe    => text_effects::bold(&format!( "{}{}|", name, termion::color::Fg(termion::color::White) )),
-      Self::CharD   => text_effects::bold(name),
-      Self::BlockD  => text_effects::bold(name),
-      Self::Socket  => text_effects::bold(&format!( "{}{}=", name, termion::color::Fg(termion::color::White) )),
+      Self::Path    => text_effects::bold(name)                 ,
+      Self::Pipe    => text_effects::bold(&format!( "{}{}"      , name, termion::color::Fg(termion::color::White) )),
+      Self::CharD   => text_effects::bold(name)                 , 
+      Self::BlockD  => text_effects::bold(name)                 ,
+      Self::Socket  => text_effects::bold(&format!( "{}{}"      , name, termion::color::Fg(termion::color::White) )),
     }
   }
 }
