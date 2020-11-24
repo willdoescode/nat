@@ -32,6 +32,7 @@ Nats features include
 
 ## Join the nat [discord server](https://discord.gg/2Fn8veP)
 ## Beta test the natls proof of concept re-write
+
 ```bash
 cargo install nat-poc
 ```
@@ -46,6 +47,13 @@ cargo install nat-poc
 
 ```bash
 cargo install natls
+```
+## Homebrew
+
+```bash
+brew tap willdoescode/homebrew-natls
+
+brew install natls
 ```
 
 ### Alternative (linux)
