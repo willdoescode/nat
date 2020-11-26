@@ -1,5 +1,4 @@
 use std::os::unix::fs::MetadataExt;
-use users;
 
 pub fn group(path: std::path::PathBuf) -> String {
   String::from(

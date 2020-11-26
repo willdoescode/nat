@@ -1,6 +1,3 @@
-use chrono;
-use filetime;
-
 pub fn modified(file: std::path::PathBuf, format: String) -> String {
   if file.symlink_metadata().unwrap().modified().is_ok() && filetime::FileTime::from_creation_time(&file.symlink_metadata().unwrap()).is_some(){
     let naive = chrono::NaiveDateTime::from_timestamp(
@@ -13,7 +10,7 @@ pub fn modified(file: std::path::PathBuf, format: String) -> String {
       chrono::DateTime::from_utc(naive, *chrono::Local::now().offset());
     datetime.format(&format).to_string()
   } else {
-    return "00 000 00:00:00".to_string()
+    "00 000 00:00:00".to_string()
   }
 }
 
@@ -30,6 +27,6 @@ pub fn created(file: std::path::PathBuf, format: String) -> String {
       chrono::DateTime::from_utc(naive, *chrono::Local::now().offset());
     datetime.format(&format).to_string()
   } else {
-    return "00 000 00:00:00".to_string()
+    "00 000 00:00:00".to_string()
   }
 }

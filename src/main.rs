@@ -5,7 +5,6 @@ mod text_effects;
 mod utils;
 use std::os::unix::fs::{FileTypeExt, MetadataExt};
 use structopt::StructOpt;
-use termion;
 
 struct Directory {
   paths: Vec<File>,
@@ -142,14 +141,14 @@ impl Directory {
       for p in paths {
         if p
           .file_name()
-          .unwrap()
-          .to_str()
-          .unwrap()
-          .to_lowercase()
-          .contains(&dir.display().to_string().to_lowercase())
-        {
-          new_paths.push(File::new(p))
-        }
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_lowercase()
+            .contains(&dir.display().to_string().to_lowercase())
+            {
+              new_paths.push(File::new(p))
+            }
       }
 
       if new_paths.is_empty() {
@@ -403,9 +402,9 @@ impl std::fmt::Debug for File {
     if input::Cli::from_args().created_time {
       time = &self.created;
     }
-    write!(
+    writeln!(
       f,
-      "{} {}{} {}{} {} {}{} {}\n",
+      "{} {}{} {}{} {} {}{} {}",
       self.perms,
       termion::color::Fg(termion::color::LightGreen),
       self.size,
