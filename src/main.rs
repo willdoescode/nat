@@ -57,25 +57,25 @@ impl PathType {
 
   fn get_letter_for_type(&self) -> String {
     match self {
-      Self::Dir     => format!( "{}d{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
-      Self::Symlink => format!( "{}l{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
-      Self::Pipe    => format!( "{}|{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
-      Self::CharD   => format!( "{}c{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
-      Self::BlockD  => format!( "{}b{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
-      Self::Socket  => format!( "{}s{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
-      _             => format!( "{}.{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset) ),
+      Self::Dir     => format!("{}d{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)),
+      Self::Symlink => format!("{}l{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)),
+      Self::Pipe    => format!("{}|{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)),
+      Self::CharD   => format!("{}c{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)),
+      Self::BlockD  => format!("{}b{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)),
+      Self::Socket  => format!("{}s{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)),
+      _             => format!("{}.{}{}", self.get_color_for_type(), termion::color::Fg(termion::color::Reset), termion::color::Bg(termion::color::Reset)),
     }
   }
 
   fn get_color_for_type(&self) -> String {
     match self {
-      Self::Dir     => format!("{}"  ,    termion::color::Fg(termion::color::LightBlue)),
-      Self::Symlink => format!("{}"  ,    termion::color::Fg(termion::color::LightMagenta)),
-      Self::Path    => format!("{}"  ,    termion::color::Fg(termion::color::White)),
-      Self::Pipe    => format!("{}"  ,    termion::color::Fg(termion::color::Yellow)),
-      Self::CharD   => format!("{}{}",    termion::color::Bg(termion::color::Yellow), termion::color::Fg(termion::color::LightBlue) ),
-      Self::BlockD  => format!("{}"  ,    termion::color::Fg(termion::color::LightGreen)),
-      Self::Socket  => format!("{}"  ,    termion::color::Fg(termion::color::LightRed)),
+      Self::Dir     => format!("{}"  , termion::color::Fg(termion::color::LightBlue)),
+      Self::Symlink => format!("{}"  , termion::color::Fg(termion::color::LightMagenta)),
+      Self::Path    => format!("{}"  , termion::color::Fg(termion::color::White)),
+      Self::Pipe    => format!("{}"  , termion::color::Fg(termion::color::Yellow)),
+      Self::CharD   => format!("{}{}", termion::color::Bg(termion::color::Yellow), termion::color::Fg(termion::color::LightBlue) ),
+      Self::BlockD  => format!("{}"  , termion::color::Fg(termion::color::LightGreen)),
+      Self::Socket  => format!("{}"  , termion::color::Fg(termion::color::LightRed)),
     }
   }
 
