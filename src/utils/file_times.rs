@@ -1,5 +1,5 @@
 pub fn modified(file: std::path::PathBuf, format: String) -> String {
-  if file.symlink_metadata().unwrap().modified().is_ok() && filetime::FileTime::from_creation_time(&file.symlink_metadata().unwrap()).is_some(){
+  if file.symlink_metadata().unwrap().modified().is_ok() {
     let naive = chrono::NaiveDateTime::from_timestamp(
       filetime::FileTime::from_last_modification_time(&file.symlink_metadata().unwrap()).seconds()
       as i64,
@@ -15,7 +15,7 @@ pub fn modified(file: std::path::PathBuf, format: String) -> String {
 }
 
 pub fn created(file: std::path::PathBuf, format: String) -> String {
-  if file.symlink_metadata().unwrap().created().is_ok() && filetime::FileTime::from_creation_time(&file.symlink_metadata().unwrap()).is_some() {
+  if filetime::FileTime::from_creation_time(&file.symlink_metadata().unwrap()).is_some() {
     let naive = chrono::NaiveDateTime::from_timestamp(
       filetime::FileTime::from_creation_time(&file.symlink_metadata().unwrap())
       .unwrap()
