@@ -1,3 +1,5 @@
+[![dependency status](https://deps.rs/crate/natls/2.1.9/status.svg)](https://deps.rs/crate/natls/2.1.9)
+
 # ⚡️ nat ⚡️
 
 # Massive nat update!
