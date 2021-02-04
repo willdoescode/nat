@@ -124,6 +124,10 @@ fn get_sort_type(sort_t: [bool; 4]) -> DirSortType {
 
 impl Directory {
   fn new(dir: std::path::PathBuf) -> Result<Self, Box<dyn std::error::Error>> {
+    if !std::path::Path::new(&dir).exists() {
+      println!("{}OS Error (2): Path does not exist.", termion::color::Fg(termion::color::Red));
+      std::process::exit(1);
+    }
     if !std::path::Path::new(&dir).is_dir() {
       let f = File::new(dir.clone());
       match input::Cli::from_args().long {
@@ -132,40 +136,11 @@ impl Directory {
       }
       std::process::exit(0)
     }
-    if !std::path::Path::new(&dir).exists() {
-      let mut new_paths = Vec::new();
-      let paths = std::fs::read_dir(".")?
-        .map(|res| res.map(|e| e.path()))
-        .collect::<Result<Vec<std::path::PathBuf>, std::io::Error>>()?;
 
-      for p in paths {
-        if p
-          .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_lowercase()
-            .contains(&dir.display().to_string().to_lowercase())
-            {
-              new_paths.push(File::new(p))
-            }
-      }
-
-      if new_paths.is_empty() {
-        println!(
-          "{}Path could not be found",
-          termion::color::Fg(termion::color::Red)
-        );
-        std::process::exit(1)
-      }
-
-      Ok(Self { paths: new_paths })
-    } else {
-      let paths = std::fs::read_dir(dir)?
+    let paths = std::fs::read_dir(dir)?
         .map(|res| res.map(|e| File::new(e.path())))
         .collect::<Result<Vec<File>, std::io::Error>>()?;
       Ok(Self { paths })
-    }
   }
 
   fn self_name_sort(&mut self) {
@@ -431,6 +406,7 @@ impl std::fmt::Display for Directory {
 
 fn main() {
   let mut dir = Directory::new(input::Cli::from_args().dir).expect("Failed to run natls");
+  // let mut dir = Directory::new(std::path::PathBuf::from("wrong path")).expect("Failed to run natls");
   dir.setup();
   println!("{}", dir);
 }
