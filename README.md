@@ -53,9 +53,7 @@ cargo install natls
 ## Homebrew
 
 ```bash
-brew tap willdoescode/homebrew-natls
-
-brew install natls
+brew install willdoescode/natls/natls
 ```
 
 ### Alternative (linux)
