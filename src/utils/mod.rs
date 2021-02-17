@@ -1,5 +1,5 @@
 pub mod file_times;
-pub mod get_group;
-pub mod get_user;
+mod group_user;
 pub mod perms;
 pub mod size;
+pub use group_user::{group, user};
