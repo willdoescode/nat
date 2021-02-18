@@ -72,9 +72,9 @@ sudo snap refresh natls
 #### Another alternative (arch linux)
 [nat](https://aur.archlinux.org/packages/nat/)
 ```bash
-paru -S nat
+yay -S nat
 ```
-(or yay)
+(or your AUR helper of choice)
 ### Manual installation
 
 #### Linux
