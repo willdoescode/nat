@@ -69,7 +69,12 @@ sudo snap install natls
 ```bash
 sudo snap refresh natls
 ``` 
-
+#### Another alternative (arch linux)
+[nat](https://aur.archlinux.org/packages/nat/)
+```bash
+paru -S nat
+```
+(or yay)
 ### Manual installation
 
 #### Linux
