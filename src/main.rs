@@ -136,9 +136,13 @@ fn get_sort_type(sort_t: [bool; 4]) -> DirSortType {
 impl Directory {
   fn new(dir: std::path::PathBuf) -> Result<Self, Box<dyn std::error::Error>> {
     if !std::path::Path::new(&dir).exists() {
-      println!("{}OS Error (2): Path does not exist.", termion::color::Fg(termion::color::Red));
-      std::process::exit(1);
+	    return Err(
+        Box::new(
+	        std::io::Error::from_raw_os_error(2)
+        )
+      )
     }
+
     if !std::path::Path::new(&dir).is_dir() {
       let f = File::new(dir.clone());
       match input::Cli::from_args().long {
@@ -413,10 +417,10 @@ impl std::fmt::Debug for File {
         res = format!("{}{}", v.get_color_for_type(), res);
       }
     }
-    let mut time = &self.modified;
-    if input::Cli::from_args().created_time {
-      time = &self.created;
-    }
+
+	  let time = if input::Cli::from_args().created_time { &self.created }
+    else { &self.modified };
+
     writeln!(f, "{} {green}{} {yellow}{} {blue} {}{} {}",
       self.perms, self.size, self.user, self.group, time, res,
       green = termion::color::Fg(termion::color::LightGreen),
@@ -439,9 +443,10 @@ impl std::fmt::Display for Directory {
 
 fn main() {
   println!("{}",
-    Directory::new(input::Cli::from_args().dir)
-      .expect("Failed to run natls")
-      .setup()
+    match Directory::new(input::Cli::from_args().dir) {
+      Ok(mut res) => format!("{}", res.setup()),
+      Err(err) => format!("{}{}", termion::color::Fg(termion::color::Red), err)
+    }
   );
 }
 
