@@ -3,7 +3,8 @@
 mod input;
 mod text_effects;
 mod utils;
-use std::os::unix::fs::{FileTypeExt, MetadataExt}; use structopt::StructOpt;
+use std::os::unix::fs::{FileTypeExt, MetadataExt};
+use structopt::StructOpt;
 use std::cmp::Ordering;
 
 struct Directory {
