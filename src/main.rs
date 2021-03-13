@@ -3,12 +3,12 @@
 mod input;
 mod text_effects;
 mod utils;
-use std::os::unix::fs::{FileTypeExt, MetadataExt};
-use structopt::StructOpt;
+use std::os::unix::fs::{FileTypeExt, MetadataExt}; use structopt::StructOpt;
 use std::cmp::Ordering;
 
 struct Directory {
   paths: Vec<File>,
+  args: input::Cli,
 }
 
 #[derive(Clone)]
@@ -104,12 +104,12 @@ impl PathType {
 }
 
 impl File {
-  fn new(file: std::path::PathBuf) -> Self {
+  fn new(file: std::path::PathBuf, time_format: String) -> Self {
     Self {
       group:     utils::group(file.to_path_buf()),
       user:      utils::user(file.to_path_buf()),
-      modified:  utils::file_times::modified(file.to_path_buf(), input::Cli::from_args().time_format),
-      created:   utils::file_times::created(file.to_path_buf(), input::Cli::from_args().time_format),
+      modified:  utils::file_times::modified(file.to_path_buf(), time_format.to_owned()),
+      created:   utils::file_times::created(file.to_path_buf(), time_format),
       size:      utils::size::size(file.to_path_buf()),
       perms:     utils::perms::perms(file.to_path_buf()),
       file_type: PathType::new(&file).unwrap(),
@@ -134,7 +134,9 @@ fn get_sort_type(sort_t: [bool; 4]) -> DirSortType {
 }
 
 impl Directory {
-  fn new(dir: std::path::PathBuf) -> Result<Self, Box<dyn std::error::Error>> {
+  fn new(args: input::Cli) -> Result<Self, Box<dyn std::error::Error>> {
+    let dir = &args.dir;
+
     if !std::path::Path::new(&dir).exists() {
 	    return Err(
         Box::new(
@@ -144,8 +146,8 @@ impl Directory {
     }
 
     if !std::path::Path::new(&dir).is_dir() {
-      let f = File::new(dir.clone());
-      match input::Cli::from_args().long {
+      let f = File::new(dir.to_owned(), args.time_format);
+      match args.long {
         true => print!("{:?}", f),
         _ => print!("{}", f)
       }
@@ -153,9 +155,13 @@ impl Directory {
     }
 
     let paths = std::fs::read_dir(dir)?
-        .map(|res| res.map(|e| File::new(e.path())))
+        .map(|res| res.map(|e| File::new(
+          e.path(), args.time_format.to_owned()
+            )
+          )
+        )
         .collect::<Result<Vec<File>, std::io::Error>>()?;
-      Ok(Self { paths })
+      Ok(Self { paths, args })
   }
 
 
@@ -165,17 +171,17 @@ impl Directory {
     let mut directories = Vec::new();
     for (i, f) in new.iter().enumerate() {
       if f.path.symlink_metadata().unwrap().is_dir() {
-        directories.push(new[i].clone());
+        directories.push(new[i].to_owned());
       } else {
-        newer.push(new[i].clone())
+        newer.push(new[i].to_owned())
       }
     }
 
     match get_sort_type([
-      input::Cli::from_args().name,
-      input::Cli::from_args().created,
-      input::Cli::from_args().modified,
-      input::Cli::from_args().size,
+      self.args.name,
+      self.args.created,
+      self.args.modified,
+      self.args.size,
     ]) {
       DirSortType::Name => {
         name_sort(&mut directories);
@@ -202,10 +208,10 @@ impl Directory {
 
   fn sort_paths(&mut self) {
     match get_sort_type([
-      input::Cli::from_args().name,
-      input::Cli::from_args().created,
-      input::Cli::from_args().modified,
-      input::Cli::from_args().size,
+      self.args.name,
+      self.args.created,
+      self.args.modified,
+      self.args.size,
     ]) {
       DirSortType::Name     => sort_as(&mut self.paths, |a, b| {
         a.path
@@ -265,7 +271,7 @@ impl Directory {
 
 
   fn sort(&mut self) {
-    match input::Cli::from_args().gdf {
+    match self.args.gdf {
       true  => self.sort_directory_then_path(),
       false => self.sort_paths(),
     }
@@ -288,9 +294,9 @@ impl Directory {
     }
 
     for p in 0..self.paths.iter().len() {
-      let ghold = self.paths[p].group.clone();
-      let uhold = self.paths[p].user.clone();
-      let shold = self.paths[p].size.clone();
+      let ghold = self.paths[p].group.to_owned();
+      let uhold = self.paths[p].user.to_owned();
+      let shold = self.paths[p].size.to_owned();
       let mut gwidth = String::new();
       for _ in 0..(gs - ghold.len()) {
         gwidth.push(' ')
@@ -433,7 +439,7 @@ impl std::fmt::Debug for File {
 impl std::fmt::Display for Directory {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     Ok(for i in self.paths.iter() {
-      match input::Cli::from_args().long {
+      match self.args.long {
         true => write!(f, "{:?}", i)?,
         _    => write!(f, "{} ", i)?,
       }
@@ -443,7 +449,7 @@ impl std::fmt::Display for Directory {
 
 fn main() {
   println!("{}",
-    match Directory::new(input::Cli::from_args().dir) {
+    match Directory::new(input::Cli::from_args()) {
       Ok(mut res) => format!("{}", res.setup()),
       Err(err) => format!("{}{}", termion::color::Fg(termion::color::Red), err)
     }
