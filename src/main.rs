@@ -255,7 +255,7 @@ impl Directory {
             .unwrap()
           )
       }),
-      DirSortType::Size     => sort_as(&mut self.paths, |a, b| {
+      DirSortType::Size => sort_as(&mut self.paths, |a, b| {
         a.path
           .symlink_metadata()
           .unwrap()
@@ -266,7 +266,7 @@ impl Directory {
             .size()
           )
       }),
-      DirSortType::Not      => (),
+      DirSortType::Not => (),
     }
   }
 
@@ -299,15 +299,15 @@ impl Directory {
       let uhold = self.paths[p].user.to_owned();
       let shold = self.paths[p].size.to_owned();
       let mut gwidth = String::new();
-      for _ in 0..(gs - ghold.len()) {
-        gwidth.push(' ')
+      for _ in 0..(gs - ghold.len() + 1) {
+        gwidth.push(' ');
       }
       let mut uwidth = String::new();
-      for _ in 0..(us - uhold.len()) {
+      for _ in 0..(us - uhold.len() + 1) {
         uwidth.push(' ')
       }
       let mut swidth = String::new();
-      for _ in 0..(ss - shold.len()) {
+      for _ in 0..(ss - shold.len() + 1) {
         swidth.push(' ')
       }
       self.paths[p].group = format!("{}{}", ghold, gwidth);
