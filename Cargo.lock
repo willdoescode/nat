@@ -142,7 +142,7 @@ dependencies = [
 
 [[package]]
 name = "natls"
-version = "2.1.13"
+version = "2.1.14"
 dependencies = [
  "chrono",
  "filetime",
