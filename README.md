@@ -29,7 +29,7 @@ Nats features include
 - Showing the user that the file belongs to 
 - Showing the group that the file belongs to
 - An easy to use file search
-- A splash of color to distinguish between files and folders
+- A splash of color to distinguish between files and folders and other file types
 
 
 ## Join the nat [discord server](https://discord.gg/2Fn8veP)
