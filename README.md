@@ -1,8 +1,6 @@
 [![dependency status](https://deps.rs/crate/natls/2.1.9/status.svg)](https://deps.rs/crate/natls/2.1.9) [![natls](https://snapcraft.io/natls/badge.svg)](https://snapcraft.io/natls)
 
-# ⚡️ nat ⚡️
-
-# Massive nat update!
+# 🎨 Natls 🎨
 
 ![banner](assets/natbanner.png)
 
@@ -17,11 +15,11 @@
 
 [Understanding permissions output](https://github.com/willdoescode/nat#understanding-permissions-output)
 
-## What is nat?
+## What is natls?
 
-Nat is a complete replacement for the 'ls' command
+Natls is a 'ls' alternative with useful info and a splash of color
 
-Nats features include
+Natls's features include
 
 - Showing file permissions
 - Showing file size
@@ -31,18 +29,8 @@ Nats features include
 - An easy to use file search
 - A splash of color to distinguish between files and folders and other file types
 
-
 ## Join the nat [discord server](https://discord.gg/2Fn8veP)
-## Beta test the natls proof of concept re-write
 
-```bash
-cargo install nat-poc
-```
-
-
-## Highlights
-
-- A rather large german tech blog wrote an [article](https://www.heise.de/news/In-Rust-geschrieben-und-uebersichtlicher-nat-will-ls-ersetzen-4937429.html) about nat
 ## Usage
 
 ### Installation 
