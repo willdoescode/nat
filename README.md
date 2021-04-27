@@ -29,8 +29,6 @@ Natls's features include
 - An easy to use file search
 - A splash of color to distinguish between files and folders and other file types
 
-## Join the nat [discord server](https://discord.gg/2Fn8veP)
-
 ## Usage
 
 ### Installation 
