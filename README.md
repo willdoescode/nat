@@ -2,6 +2,7 @@
 
 # 🎨 Natls 🎨
 
+![example](assets/example.png)
 
 ### Why Natls?
 
