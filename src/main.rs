@@ -1,9 +1,11 @@
 #![allow(dead_code)]
+#![allow(clippy::unit_arg)]
 
 mod input;
 mod text_effects;
 mod utils;
 use std::os::unix::fs::{FileTypeExt, MetadataExt};
+use std::path::Path;
 use structopt::StructOpt;
 use std::cmp::Ordering;
 
@@ -44,7 +46,7 @@ enum PathType {
 }
 
 impl PathType {
-  fn new(file: &std::path::PathBuf) -> Result<Vec<Self>, Box<dyn std::error::Error>> {
+  fn new(file: &Path) -> Result<Vec<Self>, Box<dyn std::error::Error>> {
     let mut return_val = Vec::new();
     if file.symlink_metadata()?.is_dir() {return_val.push(Self::Dir) }
     if file.symlink_metadata()?.file_type().is_symlink() {return_val.push(Self::Symlink)}
@@ -91,7 +93,7 @@ impl PathType {
     }
   }
 
-  fn get_text_traits_for_type(&self, name: &str, file: &std::path::PathBuf) -> String {
+  fn get_text_traits_for_type(&self, name: &str, file: &Path) -> String {
     match self {
       Self::Dir     => text_effects::bold(&format!( "{}{}/", name, termion::color::Fg(termion::color::White))),
       Self::Symlink => text_effects::italic(&format!( "{} -> {}", name, std::fs::read_link(file).unwrap().display().to_string())),
@@ -229,7 +231,7 @@ impl Directory {
             .to_lowercase()
           )
       }),
-      DirSortType::Created  => sort_as(&mut self.paths ,|a, b| {
+      DirSortType::Created  => sort_as(&mut self.paths, |a, b| {
         a.path
           .symlink_metadata()
           .unwrap()
@@ -242,7 +244,7 @@ impl Directory {
             .unwrap()
           )
       }),
-      DirSortType::Modified => sort_as(&mut self.paths, |a, b| {
+      DirSortType::Modified => sort_as(&mut self.paths,  |a, b| {
         a.path
           .symlink_metadata()
           .unwrap()
@@ -255,7 +257,7 @@ impl Directory {
             .unwrap()
           )
       }),
-      DirSortType::Size => sort_as(&mut self.paths, |a, b| {
+      DirSortType::Size => sort_as(&mut self.paths,  |a, b| {
         a.path
           .symlink_metadata()
           .unwrap()
@@ -269,7 +271,6 @@ impl Directory {
       DirSortType::Not => (),
     }
   }
-
 
   fn sort(&mut self) {
     match self.args.gdf {
@@ -419,14 +420,13 @@ impl std::fmt::Debug for File {
           &self.path
         );
         res = format!("{}{}", v.get_color_for_type(), res);
-      } else {
-        res = v.get_text_traits_for_type(&res, &self.path);
-        res = format!("{}{}", v.get_color_for_type(), res);
+        continue;
       }
+      res = v.get_text_traits_for_type(&res, &self.path);
+      res = format!("{}{}", v.get_color_for_type(), res);
     }
 
-	  let time = if input::Cli::from_args().created_time { &self.created }
-    else { &self.modified };
+	  let time = if input::Cli::from_args().created_time { &self.created } else { &self.modified };
 
     writeln!(f, "{} {green}{} {yellow}{} {blue} {}{} {}",
       self.perms, self.size, self.user, self.group, time, res,

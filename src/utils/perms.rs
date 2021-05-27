@@ -69,5 +69,4 @@ fn masking(mode: u16, read: u16, write: u16, execute: u16) -> String {
       termion::color::Fg(termion::color::Reset)
     ),
   }
-  .to_string()
 }

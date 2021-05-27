@@ -9,12 +9,12 @@ edition = "2018"
 
 [dependencies]
 chrono = "0.4.19"
-filetime = "0.2.13"
-humansize = "1.1.0"
-libc = "0.2.80"
+filetime = "0.2.14"
+humansize = "1.1.1"
+libc = "0.2.95"
 pretty-bytes = "0.2.2"
-structopt = "0.3.20"
-termion = "1.5.5"
+structopt = "0.3.21"
+termion = "1.5.6"
 users = "0.11.0"
 
 
