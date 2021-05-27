@@ -325,7 +325,8 @@ impl Directory {
 }
 
 fn sort_as<T>(files: &mut Vec<File>, sort_method: T)
-  where T: Fn(&File, &File) -> Ordering {
+where T: Fn(&File, &File) -> Ordering 
+{
   files.sort_by(sort_method)
 }
 
