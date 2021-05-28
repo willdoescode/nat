@@ -60,4 +60,5 @@ All Groups: Read, Write, and Execute
 rwxrwxrwx
 ```
 
-> :warning: **Natls** is not supported on Windows
+
+> :warning:  **Natls** is currently not supported on Windows
