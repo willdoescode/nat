@@ -59,3 +59,5 @@ All Groups: Read, Write, and Execute
 ```
 rwxrwxrwx
 ```
+
+> :warning: **Natls** is not supported on Windows
